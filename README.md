@@ -50,7 +50,7 @@ Sportify applies activity-specific kinematic analyzers rather than generic exerc
 
 ```
 +------------------------------------------------------------------------+
-|                      React 18 + Vite Frontend                          |
+|                 React 18 + TypeScript + Vite Frontend                  |
 |   Glassmorphic Dark UI • Zustand State • Interactive SVG Radar Chart   |
 |   Landing -> Onboarding (OTP) -> Studio -> Analysis -> Dashboard -> Plan|
 +------------------------------------------------------------------------+
@@ -127,16 +127,23 @@ Sportify/
 |
 +-- frontend/
 |   +-- src/
-|   |   +-- pages/                 # Landing, Onboarding (4-step wizard), SportAssessmentPage,
-|   |   |                          # Analysis, Dashboard, TrainingPlan, RecoveryPlan, Progress
+|   |   +-- types/                 # Centralized type contracts (athlete, assessment, plan, api)
+|   |   +-- pages/                 # Strongly typed pages (Landing, Onboarding, SportAssessmentPage,
+|   |   |                          # Analysis, Dashboard, TrainingPlan, RecoveryPlan, Progress, VideoCapture)
 |   |   +-- components/
 |   |   |   +-- auth/              # Glassmorphic OTPInput with countdown & clipboard paste
-|   |   |   +-- assessment/        # CameraCapture, RadarChart, MetricGauges
-|   |   |   +-- common/            # Header, Sidebar, MetricCards
-|   |   +-- store/                 # Zustand store (persisted auth, profile, state)
+|   |   |   +-- assessment/        # CameraSetupGuide, AssessmentUploader, PrimaryProtocolCard, etc.
+|   |   |   +-- common/            # BiomechanicalRadarChart, BenchmarkBar, AppErrorBoundary, Icons, etc.
+|   |   |   +-- layout/            # MobileTopBar, MobileBottomNav
+|   |   +-- store/                 # Zustand store (athleteStore.ts with typed auth & profile state)
 |   |   +-- config/                # Sport taxonomy, assessment matrix, guides, benchmarks
-|   |   +-- api/                   # Centralized Axios client with JWT interceptor & OTP methods
-|   +-- package.json
+|   |   +-- api/                   # Centralized Axios client (client.ts) with JWT interceptor & typed methods
+|   |   +-- App.tsx                # Root routing and hydration gate
+|   |   +-- main.tsx               # Application entrypoint
+|   |   +-- vite-env.d.ts          # Vite client ambient types
+|   +-- tsconfig.json              # TypeScript configuration (strict, paths, allowJs)
+|   +-- tsconfig.node.json         # TypeScript configuration for Vite/Node environment
+|   +-- package.json               # Dependencies & scripts ("type-check": "tsc --noEmit")
 |   +-- tailwind.config.js
 |   +-- vite.config.js
 |
@@ -149,9 +156,10 @@ Sportify/
 
 | Domain | Technologies |
 |--------|--------------|
-| **Frontend Core** | React 18.3, Vite 5.3, React Router DOM v6, Axios |
+| **Frontend Core** | React 18.3, TypeScript (Strict), Vite 5.3, React Router DOM v6, Axios |
 | **Frontend Styling** | Vanilla CSS tokens + Tailwind CSS v3.4 (Custom glassmorphic dark theme) |
-| **State Management** | Zustand 4.5 (with persist middleware for JWT auth and profile hydration) |
+| **State Management** | Zustand 4.5 (Typed store with persist middleware for JWT auth & profile hydration) |
+| **Type Contracts** | Centralized domain interfaces (`Athlete`, `Assessment`, `TrainingPlan`, `API`) |
 | **Visualizations** | Custom Dynamic SVG Biomechanical Radar Chart (trigonometric polygon calculations) |
 | **UI & Auth Components** | Lucide React, Glassmorphic 6-digit OTP Input (auto-focus, paste, countdown) |
 | **Backend API** | FastAPI, Uvicorn, Pydantic v2, Python 3.11+ |
@@ -161,7 +169,7 @@ Sportify/
 | **Computer Vision** | Google MediaPipe Tasks (`pose_landmarker_full`), OpenCV, NumPy |
 | **Generative AI** | Google Gemini 3.6 Flash (Native Google GenAI SDK with structured JSON outputs and deterministic fallbacks) |
 | **Authentication & Security** | OAuth2 Password Bearer flow, JWT tokens (python-jose), bcrypt password hashing, 6-digit OTP verification (60s cooldown, 10m TTL, 5-attempt lockout) |
-| **Testing Suite** | Python `unittest` suite (27 unit tests covering OTP lifecycle, brute-force defense, kinematics, and Gemini fallbacks) |
+| **Testing Suite** | Python `unittest` suite (27 unit tests) + TypeScript Compiler (`tsc --noEmit`) |
 
 ---
 
