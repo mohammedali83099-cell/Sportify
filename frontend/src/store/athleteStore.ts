@@ -1,19 +1,74 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authAPI, intakeAPI } from '../api/client';
+import {
+  Athlete,
+  AthleteProfile,
+  Assessment,
+  Bottleneck,
+  TrainingPlan,
+  OnboardingData,
+} from '../types';
 
-export const useAthleteStore = create(
+export type AuthStatus = 'unknown' | 'authenticated' | 'unauthenticated';
+export type ProfileStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
+
+export interface AthleteState {
+  // Auth & Token
+  athlete: Athlete | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  authStatus: AuthStatus;
+
+  // Profile & Status
+  profile: AthleteProfile | null;
+  profileStatus: ProfileStatus;
+  profileError: string | null;
+
+  // Assessment & Bottlenecks
+  currentAssessment: Assessment | null;
+  bottlenecks: Bottleneck[];
+
+  // Training Plan
+  currentPlan: TrainingPlan | null;
+
+  // Onboarding Wizard State
+  onboardingStep: number;
+  onboardingData: OnboardingData;
+}
+
+export interface AthleteActions {
+  login: (athlete: Athlete, token: string, profile?: AthleteProfile | null) => void;
+  logout: () => void;
+  setProfile: (profile: AthleteProfile | null) => void;
+  setProfileStatus: (status: ProfileStatus, error?: string | null) => void;
+  setAssessment: (assessment: Assessment | null) => void;
+  setBottlenecks: (bottlenecks: Bottleneck[]) => void;
+  setPlan: (plan: TrainingPlan | null) => void;
+  setOnboardingStep: (step: number) => void;
+  updateOnboardingData: (data: Partial<OnboardingData>) => void;
+  hydrateAuthAndProfile: () => Promise<{
+    isAuthenticated: boolean;
+    profileStatus: ProfileStatus;
+    profile?: AthleteProfile | null;
+    error?: any;
+  }>;
+}
+
+export type AthleteStore = AthleteState & AthleteActions;
+
+export const useAthleteStore = create<AthleteStore>()(
   persist(
     (set, get) => ({
       // Auth & Token
       athlete: null,
       token: null,
       isAuthenticated: false,
-      authStatus: 'unknown', // 'unknown' | 'authenticated' | 'unauthenticated'
+      authStatus: 'unknown',
 
       // Profile & Status
       profile: null,
-      profileStatus: 'idle', // 'idle' | 'loading' | 'ready' | 'missing' | 'error'
+      profileStatus: 'idle',
       profileError: null,
 
       // Assessment & Bottlenecks
@@ -28,7 +83,7 @@ export const useAthleteStore = create(
       onboardingData: {},
 
       // Actions
-      login: (athlete, token, profile = null) => {
+      login: (athlete: Athlete, token: string, profile: AthleteProfile | null = null) => {
         set({
           athlete,
           token,
@@ -55,7 +110,7 @@ export const useAthleteStore = create(
         });
       },
 
-      setProfile: (profile) => {
+      setProfile: (profile: AthleteProfile | null) => {
         set({
           profile,
           profileStatus: profile ? 'ready' : 'missing',
@@ -63,15 +118,15 @@ export const useAthleteStore = create(
         });
       },
 
-      setProfileStatus: (status, error = null) => {
+      setProfileStatus: (status: ProfileStatus, error: string | null = null) => {
         set({ profileStatus: status, profileError: error });
       },
 
-      setAssessment: (assessment) => set({ currentAssessment: assessment }),
-      setBottlenecks: (bottlenecks) => set({ bottlenecks }),
-      setPlan: (plan) => set({ currentPlan: plan }),
-      setOnboardingStep: (step) => set({ onboardingStep: step }),
-      updateOnboardingData: (data) =>
+      setAssessment: (assessment: Assessment | null) => set({ currentAssessment: assessment }),
+      setBottlenecks: (bottlenecks: Bottleneck[]) => set({ bottlenecks }),
+      setPlan: (plan: TrainingPlan | null) => set({ currentPlan: plan }),
+      setOnboardingStep: (step: number) => set({ onboardingStep: step }),
+      updateOnboardingData: (data: Partial<OnboardingData>) =>
         set((state) => ({ onboardingData: { ...state.onboardingData, ...data } })),
 
       /**
@@ -105,7 +160,7 @@ export const useAthleteStore = create(
             const prof = await intakeAPI.getProfile();
             set({ profile: prof, profileStatus: 'ready', profileError: null });
             return { isAuthenticated: true, profileStatus: 'ready', profile: prof };
-          } catch (profileErr) {
+          } catch (profileErr: any) {
             if (profileErr.response?.status === 404) {
               set({ profile: null, profileStatus: 'missing', profileError: null });
               return { isAuthenticated: true, profileStatus: 'missing', profile: null };
@@ -116,7 +171,7 @@ export const useAthleteStore = create(
             });
             return { isAuthenticated: true, profileStatus: 'error', error: profileErr };
           }
-        } catch (authErr) {
+        } catch (authErr: any) {
           if (authErr.response?.status === 401) {
             get().logout();
             return { isAuthenticated: false, profileStatus: 'idle' };
