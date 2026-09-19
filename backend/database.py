@@ -36,6 +36,9 @@ async def create_all_tables():
         # Safe migration for sqlite to ensure new columns exist
         if settings.DATABASE_URL.startswith("sqlite"):
             tables_to_columns = {
+                "athletes": [
+                    ("is_verified", "BOOLEAN DEFAULT 0"),
+                ],
                 "athlete_profiles": [
                     ("discipline", "TEXT"),
                     ("primary_role", "TEXT"),

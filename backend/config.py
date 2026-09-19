@@ -1,4 +1,9 @@
+import os
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Ensure .env is always actively loaded/refreshed
+load_dotenv(override=True)
 
 
 class Settings(BaseSettings):
@@ -11,6 +16,18 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.6-flash"
     GEMINI_FALLBACK_MODEL: str = "gemini-2.0-flash"
+
+    # Resend Email API
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "Sportify <onboarding@resend.dev>"
+
+    # Redis Cache & Ephemeral Storage
+    REDIS_URL: str = ""
+
+    # OTP Security Parameters
+    OTP_EXPIRE_MINUTES: int = 10
+    OTP_COOLDOWN_SECONDS: int = 60
+    OTP_MAX_ATTEMPTS: int = 5
 
     UPLOAD_DIR: str = "./uploads"
     MAX_VIDEO_SIZE_MB: int = 100

@@ -43,6 +43,8 @@ service_account*.json
 *.pkcs12
 *.pfx
 *.crt
+*.cert
+*.cer
 id_rsa*
 
 # ── ML Model Weights & Large Binaries ────────────────

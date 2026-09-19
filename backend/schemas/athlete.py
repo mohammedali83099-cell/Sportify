@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
 
 
@@ -19,6 +19,7 @@ class AthleteLogin(BaseModel):
 
 class AthleteResponse(AthleteBase):
     id: int
+    is_verified: bool = False
     created_at: datetime
 
     class Config:
@@ -28,6 +29,25 @@ class AthleteResponse(AthleteBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class SendOTPRequest(BaseModel):
+    email: EmailStr
+    purpose: Literal["registration", "login"] = "registration"
+
+
+class VerifyOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6)
+    purpose: Literal["registration", "login"] = "registration"
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+
+
+class OTPResponse(BaseModel):
+    message: str
+    cooldown_seconds: int = 60
+    dev_code: Optional[str] = None
 
 
 class AthleteProfileBase(BaseModel):
