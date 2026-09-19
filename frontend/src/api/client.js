@@ -50,6 +50,8 @@ export function formatErrorMessage(err, fallback = 'An unexpected error occurred
 export const authAPI = {
   register: (data) => apiClient.post('/auth/register', data).then((res) => res.data),
   login: (data) => apiClient.post('/auth/login', data).then((res) => res.data),
+  sendOTP: (data) => apiClient.post('/auth/send-otp', data).then((res) => res.data),
+  verifyOTP: (data) => apiClient.post('/auth/verify-otp', data).then((res) => res.data),
   getMe: () => apiClient.get('/auth/me').then((res) => res.data),
 };
 

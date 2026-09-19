@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAthleteStore } from '../store/athleteStore';
 import { authAPI, intakeAPI } from '../api/client';
 import SportifyLogo from '../components/common/SportifyLogo';
+import OTPInput from '../components/auth/OTPInput';
 import { normalizeSport } from '../config/sportAssessmentConfig';
 import {
   ArrowRightIcon,
@@ -27,6 +28,12 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSpecialtyOpen, setIsSpecialtyOpen] = useState(false);
+
+  // OTP Verification & Dual-Mode States
+  const [isVerifyingSignupOtp, setIsVerifyingSignupOtp] = useState(false);
+  const [signInMethod, setSignInMethod] = useState('password'); // 'password' | 'otp'
+  const [isVerifyingSignInOtp, setIsVerifyingSignInOtp] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(60);
 
   // Taxonomy & Objectives from backend
   const [sportsData, setSportsData] = useState({});
@@ -160,31 +167,156 @@ export default function Onboarding() {
     }
   };
 
+  const handleSignInSendOtp = async (e) => {
+    e?.preventDefault();
+    if (!authData.email) {
+      setError('Please enter your email address.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await authAPI.sendOTP({
+        email: authData.email,
+        purpose: 'login',
+      });
+      setOtpCooldown(res.cooldown_seconds || 60);
+      setIsVerifyingSignInOtp(true);
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+        'Failed to dispatch sign-in code. Please check your email and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifySignInOtp = async (otpCode) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const authRes = await authAPI.verifyOTP({
+        email: authData.email,
+        otp: otpCode,
+        purpose: 'login',
+      });
+
+      const token = authRes.access_token;
+      if (!token) {
+        throw new Error('Verification failed. No token received.');
+      }
+
+      login({ email: authData.email }, token, null);
+      const me = await authAPI.getMe().catch(() => ({ email: authData.email }));
+
+      try {
+        const existingProfile = await intakeAPI.getProfile();
+        login(me, token, existingProfile);
+      } catch {
+        login(me, token, null);
+      }
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+        'Invalid or expired verification code. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignupRequestOtp = async (e) => {
+    e?.preventDefault();
+    if (!authData.full_name || !authData.email || !authData.password) {
+      setError('Please fill in your full name, email, and password.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await authAPI.sendOTP({
+        email: authData.email,
+        purpose: 'registration',
+      });
+      setOtpCooldown(res.cooldown_seconds || 60);
+      setIsVerifyingSignupOtp(true);
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+        'Failed to send verification code. Please check your email and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifySignupAndCreateProfile = async (otpCode) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const authRes = await authAPI.verifyOTP({
+        email: authData.email,
+        otp: otpCode,
+        purpose: 'registration',
+        full_name: authData.full_name,
+        password: authData.password,
+      });
+
+      const token = authRes.access_token;
+      if (!token) {
+        throw new Error('Account creation failed. No token received.');
+      }
+
+      login({ email: authData.email, full_name: authData.full_name }, token, null);
+
+      const me = await authAPI.getMe().catch(() => ({
+        email: authData.email,
+        full_name: authData.full_name,
+      }));
+
+      const savedProfile = await intakeAPI.submitProfile({
+        sport: profileData.sport,
+        discipline: profileData.discipline,
+        primary_role: profileData.primary_role,
+        sub_role: profileData.sub_role,
+        development_objectives: profileData.development_objectives,
+        experience_level: profileData.experience_level,
+        training_days_per_week: Number(profileData.training_days_per_week),
+        session_duration_minutes: Number(profileData.session_duration_minutes),
+        age: Number(profileData.age),
+        weight_kg: Number(profileData.weight_kg),
+        height_cm: Number(profileData.height_cm),
+      });
+
+      login(me, token, savedProfile);
+      setProfile(savedProfile);
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+        'Verification failed. Please check the code and try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleProfileSubmit = async (e) => {
     e?.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      let token = useAthleteStore.getState().token;
-      let me = athlete;
-
-      if (!isCompleteProfile) {
-        await authAPI.register({
-          email: authData.email,
-          password: authData.password,
-          full_name: authData.full_name,
-        });
-
-        const loginRes = await authAPI.login({
-          email: authData.email,
-          password: authData.password,
-        });
-        token = loginRes.access_token;
-        login({ email: authData.email }, token, null);
-
-        me = await authAPI.getMe();
-      }
+      const token = useAthleteStore.getState().token;
+      const me = athlete;
 
       const savedProfile = await intakeAPI.submitProfile({
         sport: profileData.sport,
@@ -255,10 +387,10 @@ export default function Onboarding() {
                 <div key={s.num} className="flex items-center gap-1.5">
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all ${step === s.num
-                        ? 'bg-white text-slate-950 shadow-[0_0_12px_rgba(255,255,255,0.25)]'
-                        : step > s.num
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm'
-                          : 'bg-white/[0.03] text-slate-500 border border-white/[0.07] backdrop-blur-sm'
+                      ? 'bg-white text-slate-950 shadow-[0_0_12px_rgba(255,255,255,0.25)]'
+                      : step > s.num
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm'
+                        : 'bg-white/[0.03] text-slate-500 border border-white/[0.07] backdrop-blur-sm'
                       }`}
                   >
                     {step > s.num ? <CheckIcon className="w-3.5 h-3.5" /> : s.num}
@@ -282,9 +414,9 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── DEDICATED SIGN IN FORM ────────────────────────────────────────── */}
+          {/* ── DEDICATED SIGN IN FORM (DUAL MODE: PASSWORD / OTP) ─────────────── */}
           {isSignIn && (
-            <form onSubmit={handleSignInSubmit} className="space-y-4 my-auto">
+            <div className="space-y-4 my-auto">
               <div>
                 <h2 className="text-lg font-bold font-heading text-white mb-0.5">
                   Sign In to Sportify
@@ -294,49 +426,154 @@ export default function Onboarding() {
                 </p>
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="athlete@sportify.com"
-                  value={authData.email}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, email: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+              {/* Method Switcher Pill (hidden while verifying OTP) */}
+              {!isVerifyingSignInOtp && (
+                <div className="flex rounded-xl p-1 bg-white/[0.04] border border-white/[0.08]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignInMethod('password');
+                      setError(null);
+                    }}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${signInMethod === 'password'
+                        ? 'bg-white/15 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                      }`}
+                  >
+                    Password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignInMethod('otp');
+                      setError(null);
+                    }}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${signInMethod === 'otp'
+                        ? 'bg-white/15 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                      }`}
+                  >
+                    One-Time Code (OTP)
+                  </button>
+                </div>
+              )}
 
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={authData.password}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, password: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+              {/* Password Login Flow */}
+              {signInMethod === 'password' && (
+                <form onSubmit={handleSignInSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="athlete@sportify.com"
+                      value={authData.email}
+                      onChange={(e) =>
+                        setAuthData({ ...authData, email: e.target.value })
+                      }
+                      className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                    />
+                  </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                >
-                  <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
-                  {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
-                </button>
-              </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-slate-300 block">
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSignInMethod('otp');
+                          setError(null);
+                        }}
+                        className="text-[11px] text-emerald-400 hover:underline"
+                      >
+                        Sign in with OTP instead?
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={authData.password}
+                      onChange={(e) =>
+                        setAuthData({ ...authData, password: e.target.value })
+                      }
+                      className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                    >
+                      <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
+                      {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* OTP Login Flow */}
+              {signInMethod === 'otp' && (
+                <>
+                  {isVerifyingSignInOtp ? (
+                    <OTPInput
+                      email={authData.email}
+                      purpose="login"
+                      loading={loading}
+                      error={error}
+                      cooldownSeconds={otpCooldown}
+                      onVerify={handleVerifySignInOtp}
+                      onResend={() =>
+                        authAPI.sendOTP({ email: authData.email, purpose: 'login' })
+                      }
+                      onCancel={() => {
+                        setIsVerifyingSignInOtp(false);
+                        setError(null);
+                      }}
+                    />
+                  ) : (
+                    <form onSubmit={handleSignInSendOtp} className="space-y-3.5">
+                      <div>
+                        <label className="text-xs font-medium text-slate-300 block mb-1">
+                          Registered Email Address
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="athlete@sportify.com"
+                          value={authData.email}
+                          onChange={(e) =>
+                            setAuthData({ ...authData, email: e.target.value })
+                          }
+                          className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          We will send a 6-digit one-time code to this address.
+                        </p>
+                      </div>
+
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={loading || !authData.email}
+                          className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${loading || !authData.email ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                        >
+                          <span>{loading ? 'Dispatching Code...' : 'Send Sign-In Code'}</span>
+                          {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </>
+              )}
 
               <p className="text-center text-xs text-slate-400 pt-2 font-sans">
                 New athlete?{' '}
@@ -348,7 +585,7 @@ export default function Onboarding() {
                   Create your profile
                 </button>
               </p>
-            </form>
+            </div>
           )}
 
           {/* ── STEP 1: SPORT & POSITION ───────────────────────────────────────── */}
@@ -377,8 +614,8 @@ export default function Onboarding() {
                         type="button"
                         onClick={() => handleSportSelect(sportKey)}
                         className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${isSelected
-                            ? 'bg-gradient-to-b from-white/[0.08] to-white/[0.04] backdrop-blur-md border-white/35 text-white shadow-sm ring-1 ring-white/10'
-                            : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
+                          ? 'bg-gradient-to-b from-white/[0.08] to-white/[0.04] backdrop-blur-md border-white/35 text-white shadow-sm ring-1 ring-white/10'
+                          : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
                           }`}
                       >
                         <div className="w-7 h-7 rounded-lg bg-white/[0.04] backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0">
@@ -407,11 +644,10 @@ export default function Onboarding() {
                           key={roleKey}
                           type="button"
                           onClick={() => handleRoleSelect(roleKey)}
-                          className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
-                            isSelected
+                          className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all flex items-center justify-between ${isSelected
                               ? 'bg-white/[0.08] backdrop-blur-md border-white/35 text-white shadow-sm ring-1 ring-white/10'
                               : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
-                          }`}
+                            }`}
                         >
                           <span className="text-xs font-semibold capitalize truncate">
                             {currentRoles[roleKey].title || roleKey.replace(/_/g, ' ')}
@@ -443,9 +679,8 @@ export default function Onboarding() {
                         'Select Specialty'}
                     </span>
                     <ChevronDownIcon
-                      className={`w-4 h-4 text-slate-400 transition-transform duration-150 ${
-                        isSpecialtyOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`w-4 h-4 text-slate-400 transition-transform duration-150 ${isSpecialtyOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
 
@@ -466,11 +701,10 @@ export default function Onboarding() {
                                 setProfileData((prev) => ({ ...prev, sub_role: subKey }));
                                 setIsSpecialtyOpen(false);
                               }}
-                              className={`w-full p-2.5 rounded-lg text-left text-xs font-semibold flex items-center justify-between transition-all ${
-                                isSelected
+                              className={`w-full p-2.5 rounded-lg text-left text-xs font-semibold flex items-center justify-between transition-all ${isSelected
                                   ? 'bg-white/[0.1] text-white'
                                   : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
-                              }`}
+                                }`}
                             >
                               <span className="truncate">
                                 {currentSubRoles[subKey].title || subKey.replace(/_/g, ' ')}
@@ -519,8 +753,8 @@ export default function Onboarding() {
                       type="button"
                       onClick={() => toggleObjective(objKey)}
                       className={`p-3 rounded-xl border text-left transition-all ${isSelected
-                          ? 'bg-gradient-to-b from-white/[0.08] to-white/[0.04] backdrop-blur-md border-white/35 text-white shadow-sm ring-1 ring-white/10'
-                          : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
+                        ? 'bg-gradient-to-b from-white/[0.08] to-white/[0.04] backdrop-blur-md border-white/35 text-white shadow-sm ring-1 ring-white/10'
+                        : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
                         }`}
                     >
                       <div className="flex items-center justify-between mb-0.5">
@@ -633,8 +867,8 @@ export default function Onboarding() {
                           setProfileData({ ...profileData, experience_level: lvl })
                         }
                         className={`h-10 rounded-xl border text-xs font-medium capitalize flex items-center justify-center transition-all ${isSelected
-                            ? 'bg-white/[0.08] backdrop-blur-md border-white/35 text-white font-semibold ring-1 ring-white/10'
-                            : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
+                          ? 'bg-white/[0.08] backdrop-blur-md border-white/35 text-white font-semibold ring-1 ring-white/10'
+                          : 'bg-white/[0.02] backdrop-blur-sm border-white/[0.06] text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/[0.04]'
                           }`}
                       >
                         {lvl}
@@ -678,85 +912,108 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── STEP 4: ACCOUNT CREATION (SIGNUP ONLY) ───────────────────────── */}
+          {/* ── STEP 4: ACCOUNT CREATION & OTP VERIFICATION (SIGNUP ONLY) ───── */}
           {!isSignIn && !isCompleteProfile && step === 4 && (
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div>
-                <h2 className="text-lg font-bold font-heading text-white mb-0.5">
-                  Create Athlete Account
-                </h2>
-                <p className="text-xs text-slate-400 font-sans">
-                  Your profile and assessments sync securely across all your devices.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Alex Morgan"
-                  value={authData.full_name}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, full_name: e.target.value })
+            <>
+              {isVerifyingSignupOtp ? (
+                <OTPInput
+                  email={authData.email}
+                  purpose="registration"
+                  loading={loading}
+                  error={error}
+                  cooldownSeconds={otpCooldown}
+                  onVerify={handleVerifySignupAndCreateProfile}
+                  onResend={() =>
+                    authAPI.sendOTP({ email: authData.email, purpose: 'registration' })
                   }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-sans"
+                  onCancel={() => {
+                    setIsVerifyingSignupOtp(false);
+                    setError(null);
+                  }}
                 />
-              </div>
+              ) : (
+                <form onSubmit={handleSignupRequestOtp} className="space-y-4">
+                  <div>
+                    <h2 className="text-lg font-bold font-heading text-white mb-0.5">
+                      Create Athlete Account
+                    </h2>
+                    <p className="text-xs text-slate-400 font-sans">
+                      Your profile and assessments sync securely across all your devices.
+                    </p>
+                  </div>
 
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="athlete@sportify.com"
-                  value={authData.email}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, email: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Alex Morgan"
+                      value={authData.full_name}
+                      onChange={(e) =>
+                        setAuthData({ ...authData, full_name: e.target.value })
+                      }
+                      className="w-full h-11 px-3.5 sportify-input text-xs font-sans"
+                    />
+                  </div>
 
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={authData.password}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, password: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="athlete@sportify.com"
+                      value={authData.email}
+                      onChange={(e) =>
+                        setAuthData({ ...authData, email: e.target.value })
+                      }
+                      className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                    />
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      A 6-digit verification code will be dispatched to this email.
+                    </p>
+                  </div>
 
-              <div className="flex items-center gap-2.5 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="w-1/3 h-11 btn-secondary text-xs flex items-center justify-center"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-2/3 h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                >
-                  <span>{loading ? 'Creating Account...' : 'Complete Profile'}</span>
-                  {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
-                </button>
-              </div>
-            </form>
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={authData.password}
+                      onChange={(e) =>
+                        setAuthData({ ...authData, password: e.target.value })
+                      }
+                      className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setStep(3)}
+                      className="w-1/3 h-11 btn-secondary text-xs flex items-center justify-center"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`w-2/3 h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                    >
+                      <span>{loading ? 'Sending Code...' : 'Verify Email & Complete'}</span>
+                      {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </>
           )}
         </div>
       </div>
