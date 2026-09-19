@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ReactNode } from 'react';
 import { useAthleteStore } from '../../store/athleteStore';
+
+export interface ProfileHydrationGateProps {
+  children: ReactNode;
+}
 
 /**
  * ProfileHydrationGate
  * Bootstraps authentication identity and athlete profile on app load.
  * Prevents premature rendering or blank page flashes before athlete identity is known.
  */
-export default function ProfileHydrationGate({ children }) {
+export const ProfileHydrationGate: React.FC<ProfileHydrationGateProps> = ({ children }) => {
   const token = useAthleteStore((state) => state.token);
   const profileStatus = useAthleteStore((state) => state.profileStatus);
   const hydrateAuthAndProfile = useAthleteStore((state) => state.hydrateAuthAndProfile);
 
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,5 +48,7 @@ export default function ProfileHydrationGate({ children }) {
     );
   }
 
-  return children;
-}
+  return <>{children}</>;
+};
+
+export default ProfileHydrationGate;

@@ -1,11 +1,24 @@
 import React from 'react';
 import { DumbbellIcon, CheckIcon } from '../common/Icons';
 
-export default function FoundationalSection({
+export interface FoundationalProtocolOption {
+  protocolId: string;
+  tag: string;
+  name: string;
+  description: string;
+}
+
+export interface FoundationalSectionProps {
+  options?: FoundationalProtocolOption[];
+  selectedProtocolId?: string;
+  onSelectProtocol: (protocolId: string) => void;
+}
+
+export const FoundationalSection: React.FC<FoundationalSectionProps> = ({
   options,
   selectedProtocolId,
   onSelectProtocol,
-}) {
+}) => {
   if (!options || options.length === 0) return null;
 
   return (
@@ -59,4 +72,6 @@ export default function FoundationalSection({
       </div>
     </div>
   );
-}
+};
+
+export default FoundationalSection;

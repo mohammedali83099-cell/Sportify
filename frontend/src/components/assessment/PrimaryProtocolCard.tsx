@@ -1,13 +1,38 @@
 import React, { useState } from 'react';
 import { useAthleteStore } from '../../store/athleteStore';
 import { getRoleBenchmarks } from '../../config/taxonomyBenchmarks';
-import BiomechanicalRadarChart from '../common/BiomechanicalRadarChart';
+import BiomechanicalRadarChart, { RadarMetricInput } from '../common/BiomechanicalRadarChart';
 import { CheckIcon, TargetIcon } from '../common/Icons';
+
+export interface ProtocolMetricConfig {
+  key?: string;
+  label: string;
+  desc?: string;
+  benchmark?: number;
+}
+
+export interface ProtocolConfig {
+  id: string;
+  name: string;
+  metrics: ProtocolMetricConfig[];
+  [key: string]: any;
+}
+
+export interface PrimaryProtocolCardProps {
+  protocol: ProtocolConfig;
+  status?: 'available' | 'foundation' | 'coming_soon' | string;
+  roleReason?: string;
+  isSelected?: boolean;
+}
 
 /**
  * Match protocol metrics with role benchmarks and athlete's movement scores if available.
  */
-function mapProtocolToRadarMetrics(metrics, movementScores, roleBenchmarks) {
+function mapProtocolToRadarMetrics(
+  metrics: ProtocolMetricConfig[],
+  movementScores: Record<string, number> | null,
+  roleBenchmarks: Record<string, number>
+): RadarMetricInput[] {
   if (!metrics || metrics.length === 0) return [];
 
   const scores = movementScores || {};
@@ -32,7 +57,7 @@ function mapProtocolToRadarMetrics(metrics, movementScores, roleBenchmarks) {
     }
 
     // 2. Look up athlete's measured score if available
-    let score = null;
+    let score: number | null = null;
     if (hasScores) {
       if (scores[key] !== undefined && typeof scores[key] === 'number') {
         score = scores[key];
@@ -71,17 +96,17 @@ function mapProtocolToRadarMetrics(metrics, movementScores, roleBenchmarks) {
   });
 }
 
-export default function PrimaryProtocolCard({
+export const PrimaryProtocolCard: React.FC<PrimaryProtocolCardProps> = ({
   protocol,
-  status = 'available', // 'available' | 'foundation' | 'coming_soon'
+  status = 'available',
   roleReason,
   isSelected,
-}) {
+}) => {
   const profile = useAthleteStore((state) => state.profile);
   const currentAssessment = useAthleteStore((state) => state.currentAssessment);
 
-  const [hoveredKey, setHoveredKey] = useState(null);
-  const [selectedKey, setSelectedKey] = useState(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const activeKey = hoveredKey || selectedKey;
 
   if (!protocol) return null;
@@ -112,14 +137,14 @@ export default function PrimaryProtocolCard({
   };
 
   const badge = getStatusBadge();
-  const movementScores = currentAssessment?.movement_scores || null;
+  const movementScores = (currentAssessment as any)?.movement_scores || null;
 
   // Retrieve athlete's role-specific benchmarks from taxonomy
   const roleBenchmarks = getRoleBenchmarks(
-    profile?.sport,
-    profile?.primary_role,
-    profile?.sub_role,
-    profile?.experience_level
+    profile?.sport || 'cricket',
+    profile?.primary_role || 'athlete',
+    profile?.secondary_role || undefined,
+    profile?.experience_level || 'intermediate'
   );
 
   const radarMetrics = mapProtocolToRadarMetrics(
@@ -203,14 +228,14 @@ export default function PrimaryProtocolCard({
             {radarMetrics.map((m) => {
               const isActive = activeKey === m.key;
               const hasScore = isCalibrated && m.score !== null;
-              const diff = hasScore ? Math.round(m.score - m.benchmark) : null;
+              const diff = hasScore && typeof m.score === 'number' ? Math.round(m.score - (m.benchmark || 0)) : null;
 
               return (
                 <div
                   key={m.key}
-                  onMouseEnter={() => setHoveredKey(m.key)}
+                  onMouseEnter={() => setHoveredKey(m.key || null)}
                   onMouseLeave={() => setHoveredKey(null)}
-                  onClick={() => setSelectedKey((prev) => (prev === m.key ? null : m.key))}
+                  onClick={() => setSelectedKey((prev) => (prev === m.key ? null : (m.key || null)))}
                   className={`p-2.5 rounded-xl border backdrop-blur-sm flex flex-col justify-between cursor-pointer transition-all duration-150 ${
                     isActive
                       ? 'border-sky-500/40 bg-white/[0.08] shadow-[0_0_16px_rgba(56,189,248,0.12)] ring-1 ring-sky-400/25'
@@ -271,4 +296,6 @@ export default function PrimaryProtocolCard({
       )}
     </div>
   );
-}
+};
+
+export default PrimaryProtocolCard;

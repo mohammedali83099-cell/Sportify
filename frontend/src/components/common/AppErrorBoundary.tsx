@@ -1,26 +1,35 @@
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangleIcon, RefreshIcon } from './Icons';
 
-export class AppErrorBoundary extends React.Component {
-  constructor(props) {
+export interface AppErrorBoundaryProps {
+  children: ReactNode;
+}
+
+export interface AppErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+  constructor(props: AppErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): AppErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('AppErrorBoundary caught an error:', error, errorInfo);
   }
 
-  handleReset = () => {
+  handleReset = (): void => {
     this.setState({ hasError: false, error: null });
     window.location.href = '/dashboard';
   };
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#07080C] text-[#F1F5F9] flex flex-col items-center justify-center p-6 text-center select-none">

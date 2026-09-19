@@ -1,22 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+export interface OTPInputProps {
+  email: string;
+  purpose?: 'registration' | 'login';
+  loading?: boolean;
+  error?: string | null;
+  cooldownSeconds?: number;
+  devCode?: string | null;
+  onVerify?: (code: string) => void;
+  onResend?: () => Promise<any> | void;
+  onCancel?: () => void;
+}
+
 /**
  * OTPInput
  *
  * Lightweight, accessible, 6-digit pin entry component.
  * Features auto-advance, backspace navigation, clipboard paste,
  * dynamic countdown timer, and glassmorphic styling.
- *
- * @param {string} email - Destination email address for display
- * @param {string} purpose - 'registration' | 'login'
- * @param {boolean} loading - Loading state during submission
- * @param {string|null} error - Error message to display
- * @param {number} cooldownSeconds - Initial cooldown countdown
- * @param {Function} onVerify - Callback invoked with (code: string)
- * @param {Function} onResend - Callback to request a new code
- * @param {Function} onCancel - Callback to return to previous step
  */
-export default function OTPInput({
+export const OTPInput: React.FC<OTPInputProps> = ({
   email,
   purpose = 'registration',
   loading = false,
@@ -26,11 +29,11 @@ export default function OTPInput({
   onVerify,
   onResend,
   onCancel,
-}) {
-  const [digits, setDigits] = useState(['', '', '', '', '', '']);
-  const [timeLeft, setTimeLeft] = useState(cooldownSeconds);
-  const [resending, setResending] = useState(false);
-  const inputRefs = useRef([]);
+}) => {
+  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [timeLeft, setTimeLeft] = useState<number>(cooldownSeconds);
+  const [resending, setResending] = useState<boolean>(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Auto-focus first input on mount
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function OTPInput({
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const handleChange = (index, value) => {
+  const handleChange = (index: number, value: string) => {
     const char = value.replace(/\D/g, '').slice(-1);
     const newDigits = [...digits];
     newDigits[index] = char;
@@ -60,7 +63,7 @@ export default function OTPInput({
 
     // Auto-advance to next input if digit entered
     if (char && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus();
+      inputRefs.current[index + 1]?.focus();
     }
 
     // If all digits entered, trigger verification
@@ -70,14 +73,14 @@ export default function OTPInput({
     }
   };
 
-  const handleKeyDown = (index, e) => {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (!digits[index] && index > 0 && inputRefs.current[index - 1]) {
         // Move back and clear previous
         const newDigits = [...digits];
         newDigits[index - 1] = '';
         setDigits(newDigits);
-        inputRefs.current[index - 1].focus();
+        inputRefs.current[index - 1]?.focus();
       } else {
         const newDigits = [...digits];
         newDigits[index] = '';
@@ -90,7 +93,7 @@ export default function OTPInput({
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
@@ -182,7 +185,9 @@ export default function OTPInput({
           {digits.map((digit, idx) => (
             <input
               key={`otp-box-${idx}`}
-              ref={(el) => (inputRefs.current[idx] = el)}
+              ref={(el) => {
+                inputRefs.current[idx] = el;
+              }}
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -273,4 +278,6 @@ export default function OTPInput({
       </div>
     </div>
   );
-}
+};
+
+export default OTPInput;

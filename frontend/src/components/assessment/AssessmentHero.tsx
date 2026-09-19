@@ -1,7 +1,17 @@
 import React from 'react';
 import { SportIcon } from '../common/Icons';
 
-export default function AssessmentHero({
+export interface AssessmentHeroProps {
+  title: string;
+  subtitle?: string;
+  sportName?: string;
+  badgeLabel?: string;
+  roleName?: string | null;
+  subRole?: string | null;
+  experienceLevel?: string | null;
+}
+
+export const AssessmentHero: React.FC<AssessmentHeroProps> = ({
   title,
   subtitle,
   sportName,
@@ -9,8 +19,8 @@ export default function AssessmentHero({
   roleName,
   subRole,
   experienceLevel,
-}) {
-  const formatTitle = (str) => {
+}) => {
+  const formatTitle = (str?: string | null) => {
     if (!str) return 'Athlete';
     return str
       .replace(/_/g, ' ')
@@ -49,4 +59,6 @@ export default function AssessmentHero({
       </div>
     </div>
   );
-}
+};
+
+export default AssessmentHero;

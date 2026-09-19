@@ -1,19 +1,27 @@
 import React from 'react';
 
+export interface SportifyLogoProps {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero';
+  variant?: 'full' | 'mark' | 'stacked' | 'hero';
+  showTagline?: boolean;
+  showText?: boolean;
+  className?: string;
+}
+
 /**
  * Sportify Official Product Brand Component
  * Renders the authentic metallic S emblem and embossed wordmark with seamless alpha transparency.
  * Supports: 'full' (horizontal lockup), 'mark' (emblem only), 'stacked' / 'hero' (centered emblem over wordmark).
  */
-export const SportifyLogo = ({
+export const SportifyLogo: React.FC<SportifyLogoProps> = ({
   size = 'md',
-  variant = 'full', // 'full' | 'mark' | 'stacked' | 'hero'
+  variant = 'full',
   showTagline = false,
   showText = true,
   className = '',
 }) => {
   // Height map for the authentic S emblem mark
-  const markHeightMap = {
+  const markHeightMap: Record<string, string> = {
     xs: 'h-5',
     sm: 'h-6',
     md: 'h-7 sm:h-8',
@@ -23,7 +31,7 @@ export const SportifyLogo = ({
   };
 
   // Height map for the authentic metallic SPORTIFY wordmark
-  const textHeightMap = {
+  const textHeightMap: Record<string, string> = {
     xs: 'h-2.5',
     sm: 'h-3',
     md: 'h-3.5 sm:h-4',

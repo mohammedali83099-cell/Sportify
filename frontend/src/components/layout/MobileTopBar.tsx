@@ -5,11 +5,10 @@ import { normalizeSport } from '../../config/sportAssessmentConfig';
 import SportifyLogo from '../common/SportifyLogo';
 import { SportIcon, LogoutIcon, ZapIcon } from '../common/Icons';
 
-export default function MobileTopBar() {
+export const MobileTopBar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const athlete = useAthleteStore((state) => state.athlete);
   const profile = useAthleteStore((state) => state.profile);
   const logout = useAthleteStore((state) => state.logout);
 
@@ -21,7 +20,7 @@ export default function MobileTopBar() {
     navigate('/onboarding?mode=signin');
   };
 
-  const formatTitle = (str) => {
+  const formatTitle = (str?: string | null) => {
     if (!str) return 'Athlete';
     return str
       .replace(/_/g, ' ')
@@ -30,8 +29,7 @@ export default function MobileTopBar() {
       .join(' ');
   };
 
-  const roleTitle = formatTitle(profile?.sub_role || profile?.primary_role);
-  const sportName = profile?.sport ? formatTitle(profile.sport) : null;
+  const roleTitle = formatTitle(profile?.secondary_role || profile?.primary_role);
 
   const navLinks = [
     { to: '/dashboard', label: 'Dashboard', isActive: location.pathname === '/dashboard' },
@@ -50,7 +48,7 @@ export default function MobileTopBar() {
             <SportifyLogo size="xs" showTagline={false} />
           </Link>
 
-          {/* Sport & Role Context Badge (no ugly truncation) */}
+          {/* Sport & Role Context Badge */}
           {profile?.sport && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-slate-200 text-xs font-sans min-w-0 max-w-[220px] sm:max-w-xs">
               <SportIcon sport={profile.sport} className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -99,4 +97,6 @@ export default function MobileTopBar() {
       </div>
     </header>
   );
-}
+};
+
+export default MobileTopBar;

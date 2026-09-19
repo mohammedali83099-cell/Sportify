@@ -1,12 +1,25 @@
 import React from 'react';
 import { VideoIcon, AlertTriangleIcon, CheckIcon } from '../common/Icons';
 
-export default function CameraSetupGuide({
+export interface CameraSetupStep {
+  step: number | string;
+  title: string;
+  desc: string;
+}
+
+export interface CameraSetupGuideProps {
+  steps?: CameraSetupStep[];
+  protocolName?: string;
+  repetitionCount?: string;
+  warningMessage?: string;
+}
+
+export const CameraSetupGuide: React.FC<CameraSetupGuideProps> = ({
   steps,
   protocolName,
   repetitionCount,
   warningMessage,
-}) {
+}) => {
   if (!steps || steps.length === 0) return null;
 
   return (
@@ -95,4 +108,6 @@ export default function CameraSetupGuide({
       </div>
     </div>
   );
-}
+};
+
+export default CameraSetupGuide;

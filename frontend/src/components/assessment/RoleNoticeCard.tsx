@@ -1,7 +1,16 @@
 import React from 'react';
 import { InfoIcon } from '../common/Icons';
 
-export default function RoleNoticeCard({ notice }) {
+export interface RoleNotice {
+  title: string;
+  description: string;
+}
+
+export interface RoleNoticeCardProps {
+  notice?: RoleNotice | null;
+}
+
+export const RoleNoticeCard: React.FC<RoleNoticeCardProps> = ({ notice }) => {
   if (!notice) return null;
 
   return (
@@ -19,4 +28,6 @@ export default function RoleNoticeCard({ notice }) {
       </div>
     </div>
   );
-}
+};
+
+export default RoleNoticeCard;

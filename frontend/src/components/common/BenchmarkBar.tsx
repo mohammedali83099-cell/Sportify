@@ -1,20 +1,23 @@
 import React from 'react';
 
+export interface BenchmarkBarProps {
+  name: string;
+  score?: number;
+  benchmark?: number;
+  gap?: number;
+  tier?: 'bottleneck' | 'critical' | 'dev_area' | 'development_areas' | 'proficient' | 'strength' | 'strengths' | string;
+  subtitle?: string;
+  className?: string;
+}
+
 /**
  * BenchmarkBar
  * 
  * Reusable visual comparison between an athlete's measured score and their role target.
  * Uses existing Sportify values only (score, benchmark, gap, tier category).
  * Does NOT invent new classification logic or scores.
- * 
- * @param {string} name - Attribute display name (e.g. "Plant Knee Stability")
- * @param {number} score - Athlete's current measured score (0-100)
- * @param {number} benchmark - Role target baseline (0-100)
- * @param {number} [gap] - Difference from benchmark (e.g. -6 or +8)
- * @param {string} [tier] - Sportify authoritative category ('bottleneck' | 'dev_area' | 'proficient' | 'strength')
- * @param {string} [subtitle] - Optional short context (e.g. "Eccentric Stability")
  */
-export default function BenchmarkBar({
+export const BenchmarkBar: React.FC<BenchmarkBarProps> = ({
   name,
   score = 0,
   benchmark = 75,
@@ -22,7 +25,7 @@ export default function BenchmarkBar({
   tier,
   subtitle,
   className = '',
-}) {
+}) => {
   const numericScore = Math.max(0, Math.min(100, Math.round(score)));
   const numericBench = Math.max(0, Math.min(100, Math.round(benchmark)));
   const calculatedGap = gap !== undefined ? gap : Math.round(numericScore - numericBench);
@@ -117,4 +120,6 @@ export default function BenchmarkBar({
       </div>
     </div>
   );
-}
+};
+
+export default BenchmarkBar;

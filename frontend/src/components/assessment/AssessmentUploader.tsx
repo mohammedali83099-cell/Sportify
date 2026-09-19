@@ -12,7 +12,19 @@ import {
 
 const VALID_EXTENSIONS = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
 
-export default function AssessmentUploader({
+export interface AssessmentUploaderProps {
+  sportKey?: string;
+  primaryRole?: string | null;
+  subRole?: string | null;
+  activeProtocolId: string;
+  activeProtocolName?: string;
+  uploadLabel?: string;
+  analyzeButtonLabel?: string;
+}
+
+export type UploadStage = 'idle' | 'uploading' | 'quality_gate' | 'analyzing' | 'preparing' | 'ai_coaching';
+
+export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
   sportKey,
   primaryRole,
   subRole,
@@ -20,35 +32,35 @@ export default function AssessmentUploader({
   activeProtocolName,
   uploadLabel,
   analyzeButtonLabel,
-}) {
+}) => {
   const navigate = useNavigate();
   const setAssessment = useAthleteStore((state) => state.setAssessment);
   const setBottlenecks = useAthleteStore((state) => state.setBottlenecks);
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
-  const [stage, setStage] = useState('idle'); // 'idle' | 'uploading' | 'quality_gate' | 'analyzing' | 'preparing'
-  const [errorMsg, setErrorMsg] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [stage, setStage] = useState<UploadStage>('idle');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const chooseInputRef = useRef(null);
-  const recordInputRef = useRef(null);
-  const pollTimerRef = useRef(null);
-  const timeoutTimerRef = useRef(null);
+  const chooseInputRef = useRef<HTMLInputElement | null>(null);
+  const recordInputRef = useRef<HTMLInputElement | null>(null);
+  const pollTimerRef = useRef<any>(null);
+  const timeoutTimerRef = useRef<any>(null);
 
   // Clean up timers & preview URLs on unmount
   useEffect(() => {
     return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-      if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
+      if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current as any);
       if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
     };
   }, [videoPreviewUrl]);
 
-  const handleFile = (file) => {
+  const handleFile = (file: File) => {
     setErrorMsg(null);
     if (!file) return;
 
-    const ext = (file.name || 'video.mp4').split('.').pop().toLowerCase();
+    const ext = (file.name || 'video.mp4').split('.').pop()?.toLowerCase() || '';
     if (!VALID_EXTENSIONS.includes(ext)) {
       setErrorMsg(`Unsupported format (${ext.toUpperCase()}). Please upload MP4, MOV, AVI, or WebM.`);
       return;
@@ -100,8 +112,8 @@ export default function AssessmentUploader({
         try {
           const statusRes = await videoAPI.getStatus(jobId);
           if (statusRes.status === 'completed') {
-            clearInterval(pollTimerRef.current);
-            clearTimeout(timeoutTimerRef.current);
+            if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
+            if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current as any);
             clearTimeout(stageTimer1);
             clearTimeout(stageTimer2);
             clearTimeout(stageTimer3);
@@ -110,8 +122,8 @@ export default function AssessmentUploader({
             if (statusRes.bottlenecks) setBottlenecks(statusRes.bottlenecks);
             navigate(`/analysis/${jobId}`, { state: { result: statusRes } });
           } else if (statusRes.status === 'failed') {
-            clearInterval(pollTimerRef.current);
-            clearTimeout(timeoutTimerRef.current);
+            if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
+            if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current as any);
             clearTimeout(stageTimer1);
             clearTimeout(stageTimer2);
             clearTimeout(stageTimer3);
@@ -128,7 +140,7 @@ export default function AssessmentUploader({
 
       // Timeout guard after 120 seconds
       timeoutTimerRef.current = setTimeout(() => {
-        clearInterval(pollTimerRef.current);
+        if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
         clearTimeout(stageTimer1);
         clearTimeout(stageTimer2);
         clearTimeout(stageTimer3);
@@ -137,7 +149,7 @@ export default function AssessmentUploader({
           setErrorMsg('Analysis timed out. Please verify local vision processing service.');
         }
       }, 120000);
-    } catch (err) {
+    } catch (err: any) {
       setStage('idle');
       setErrorMsg(
         err.response?.data?.detail ||
@@ -237,7 +249,7 @@ export default function AssessmentUploader({
 
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
               <span className="truncate max-w-[200px]">{selectedFile?.name || 'video_recording.mp4'}</span>
-              <span>{(selectedFile?.size / (1024 * 1024)).toFixed(1)} MB</span>
+              <span>{selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) : 0} MB</span>
             </div>
           </div>
         ) : (
@@ -307,4 +319,6 @@ export default function AssessmentUploader({
       )}
     </div>
   );
-}
+};
+
+export default AssessmentUploader;

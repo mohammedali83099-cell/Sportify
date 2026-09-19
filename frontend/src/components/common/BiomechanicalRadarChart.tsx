@@ -1,5 +1,34 @@
 import React, { useState } from 'react';
 
+export interface RadarMetricInput {
+  label?: string;
+  name?: string;
+  score?: number | null;
+  benchmark?: number;
+  key?: string;
+  desc?: string;
+}
+
+export interface NormalizedRadarMetric {
+  key: string;
+  label: string;
+  desc: string;
+  score: number | null;
+  benchmark: number;
+}
+
+export interface BiomechanicalRadarChartProps {
+  metrics?: RadarMetricInput[] | null;
+  scores?: Record<string, number | null> | null;
+  benchmarks?: Record<string, number> | number | null;
+  isCalibrated?: boolean;
+  highlightedKey?: string | null;
+  onHoverMetric?: ((key: string | null) => void) | null;
+  onSelectMetric?: ((key: string | null) => void) | null;
+  className?: string;
+  showLegend?: boolean;
+}
+
 /**
  * BiomechanicalRadarChart
  *
@@ -9,18 +38,8 @@ import React, { useState } from 'react';
  *
  * Supports bidirectional hover/selection, rich tooltips, and graceful
  * empty/pending calibration states.
- *
- * @param {Array<{ label: string, score?: number|null, benchmark: number, key?: string, desc?: string }>} [metrics]
- * @param {Object} [scores] - Dictionary of score keys to numbers
- * @param {Object|number} [benchmarks] - Dictionary of benchmark keys or single number
- * @param {boolean} [isCalibrated=true] - Whether athlete has completed baseline
- * @param {string|null} [highlightedKey=null] - External key highlighted by parent (e.g. card hover)
- * @param {Function} [onHoverMetric] - Callback when hovering an axis (key: string | null)
- * @param {Function} [onSelectMetric] - Callback when clicking an axis (key: string | null)
- * @param {string} [className='']
- * @param {boolean} [showLegend=true]
  */
-export default function BiomechanicalRadarChart({
+export const BiomechanicalRadarChart: React.FC<BiomechanicalRadarChartProps> = ({
   metrics = null,
   scores = null,
   benchmarks = null,
@@ -30,21 +49,21 @@ export default function BiomechanicalRadarChart({
   onSelectMetric = null,
   className = '',
   showLegend = true,
-}) {
-  const [internalHoverIndex, setInternalHoverIndex] = useState(null);
+}) => {
+  const [internalHoverIndex, setInternalHoverIndex] = useState<number | null>(null);
 
   // ── 1. NORMALIZE INPUT METRICS ──────────────────────────────────────────────
-  let normalizedMetrics = [];
+  let normalizedMetrics: NormalizedRadarMetric[] = [];
 
   if (Array.isArray(metrics) && metrics.length > 0) {
     normalizedMetrics = metrics.map((m) => {
-      const key = m.key || m.label.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const key = m.key || (m.label || m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '_');
       const hasScore = typeof m.score === 'number' && !isNaN(m.score);
       return {
         key,
         label: m.label || m.name || key.replace(/_/g, ' '),
         desc: m.desc || '',
-        score: hasScore ? m.score : null,
+        score: hasScore ? (m.score as number) : null,
         benchmark: typeof m.benchmark === 'number' ? m.benchmark : 70,
       };
     });
@@ -53,8 +72,8 @@ export default function BiomechanicalRadarChart({
       let bench = 70;
       if (typeof benchmarks === 'number') {
         bench = benchmarks;
-      } else if (benchmarks && typeof benchmarks === 'object' && benchmarks[k]) {
-        bench = benchmarks[k];
+      } else if (benchmarks && typeof benchmarks === 'object' && (benchmarks as Record<string, number>)[k]) {
+        bench = (benchmarks as Record<string, number>)[k];
       }
       const label = k
         .replace(/_/g, ' ')
@@ -74,11 +93,11 @@ export default function BiomechanicalRadarChart({
   } else {
     // Default 5-axis baseline fallback
     normalizedMetrics = [
-      { key: 'knee_stability', label: 'Joint Stability', score: null, benchmark: 70 },
-      { key: 'explosive_capacity', label: 'Force Production', score: null, benchmark: 72 },
-      { key: 'upper_body_posture', label: 'Torso Control', score: null, benchmark: 70 },
-      { key: 'hip_mobility', label: 'Dynamic Range', score: null, benchmark: 68 },
-      { key: 'balance', label: 'Deceleration', score: null, benchmark: 66 },
+      { key: 'knee_stability', label: 'Joint Stability', desc: '', score: null, benchmark: 70 },
+      { key: 'explosive_capacity', label: 'Force Production', desc: '', score: null, benchmark: 72 },
+      { key: 'upper_body_posture', label: 'Torso Control', desc: '', score: null, benchmark: 70 },
+      { key: 'hip_mobility', label: 'Dynamic Range', desc: '', score: null, benchmark: 68 },
+      { key: 'balance', label: 'Deceleration', desc: '', score: null, benchmark: 66 },
     ];
   }
 
@@ -93,7 +112,7 @@ export default function BiomechanicalRadarChart({
   const radius = 95;
 
   // Calculate vertex coordinates for an axis at a given ratio (0 to 1)
-  const getPoint = (index, ratio) => {
+  const getPoint = (index: number, ratio: number) => {
     const angle = -Math.PI / 2 + (index * 2 * Math.PI) / N;
     const clampedRatio = Math.max(0, Math.min(1, ratio));
     const r = radius * clampedRatio;
@@ -105,7 +124,6 @@ export default function BiomechanicalRadarChart({
   };
 
   // ── 3. POLYGON STRINGS ─────────────────────────────────────────────────────
-  // Concentric background grid rings at 25%, 50%, 75%, 100%
   const ringLevels = [0.25, 0.5, 0.75, 1.0];
   const gridRings = ringLevels.map((lvl) => {
     return normalizedMetrics
@@ -137,8 +155,7 @@ export default function BiomechanicalRadarChart({
     : '';
 
   // ── 4. ACTIVE METRIC RESOLUTION ────────────────────────────────────────────
-  // Determine which metric is currently highlighted (via prop or internal hover)
-  let activeIndex = null;
+  let activeIndex: number | null = null;
   if (highlightedKey) {
     const foundIdx = normalizedMetrics.findIndex((m) => m.key === highlightedKey);
     if (foundIdx !== -1) activeIndex = foundIdx;
@@ -152,7 +169,7 @@ export default function BiomechanicalRadarChart({
   // Compute active point coordinates for tooltip anchoring
   let tooltipX = 50;
   let tooltipY = 50;
-  if (activeMetric !== null) {
+  if (activeMetric !== null && activeIndex !== null) {
     const pointRatio =
       isCalibrated && activeMetric.score !== null
         ? activeMetric.score / 100
@@ -162,7 +179,7 @@ export default function BiomechanicalRadarChart({
     tooltipY = (pt.y / height) * 100;
   }
 
-  const handlePointerEnter = (index, key) => {
+  const handlePointerEnter = (index: number, key: string) => {
     setInternalHoverIndex(index);
     if (onHoverMetric) onHoverMetric(key);
   };
@@ -172,7 +189,7 @@ export default function BiomechanicalRadarChart({
     if (onHoverMetric) onHoverMetric(null);
   };
 
-  const handleClickMetric = (key) => {
+  const handleClickMetric = (key: string) => {
     if (onSelectMetric) onSelectMetric(key);
   };
 
@@ -332,7 +349,7 @@ export default function BiomechanicalRadarChart({
 
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
-            let anchor = 'middle';
+            let anchor: 'middle' | 'inherit' | 'start' | 'end' = 'middle';
             if (cos > 0.3) anchor = 'start';
             else if (cos < -0.3) anchor = 'end';
 
@@ -398,7 +415,6 @@ export default function BiomechanicalRadarChart({
             const outer = getPoint(i, 1.0);
             return (
               <g key={`hit-area-${i}`}>
-                {/* Spoke line hit area */}
                 <line
                   x1={cx}
                   y1={cy}
@@ -411,7 +427,6 @@ export default function BiomechanicalRadarChart({
                   onMouseLeave={handlePointerLeave}
                   onClick={() => handleClickMetric(m.key)}
                 />
-                {/* Vertex hit area */}
                 <circle
                   cx={outer.x}
                   cy={outer.y}
@@ -513,4 +528,6 @@ export default function BiomechanicalRadarChart({
       )}
     </div>
   );
-}
+};
+
+export default BiomechanicalRadarChart;

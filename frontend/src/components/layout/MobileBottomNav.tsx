@@ -8,9 +8,18 @@ import {
   NavAssessIcon,
   NavRecoveryIcon,
   NavProgressIcon,
+  IconProps,
 } from '../common/Icons';
 
-export default function MobileBottomNav() {
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.FC<IconProps>;
+  isActive: boolean;
+  isCenter?: boolean;
+}
+
+export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const profile = useAthleteStore((state) => state.profile);
 
@@ -22,7 +31,7 @@ export default function MobileBottomNav() {
     location.pathname === '/video' ||
     location.pathname.startsWith('/analysis');
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       to: '/dashboard',
       label: 'Home',
@@ -125,4 +134,6 @@ export default function MobileBottomNav() {
       </div>
     </nav>
   );
-}
+};
+
+export default MobileBottomNav;
