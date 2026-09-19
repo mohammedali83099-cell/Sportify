@@ -4,7 +4,6 @@ import { useAthleteStore } from '../store/athleteStore';
 import { authAPI, intakeAPI } from '../api/client';
 import SportifyLogo from '../components/common/SportifyLogo';
 import OTPInput from '../components/auth/OTPInput';
-import { normalizeSport } from '../config/sportAssessmentConfig';
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -12,7 +11,7 @@ import {
   SportIcon,
 } from '../components/common/Icons';
 
-export default function Onboarding() {
+export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const mode = searchParams.get('mode') || 'signup'; // 'signup' | 'signin' | 'complete-profile'
@@ -24,20 +23,20 @@ export default function Onboarding() {
   const isSignIn = mode === 'signin';
   const isCompleteProfile = mode === 'complete-profile';
 
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isSpecialtyOpen, setIsSpecialtyOpen] = useState(false);
+  const [step, setStep] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSpecialtyOpen, setIsSpecialtyOpen] = useState<boolean>(false);
 
   // OTP Verification & Dual-Mode States
-  const [isVerifyingSignupOtp, setIsVerifyingSignupOtp] = useState(false);
-  const [signInMethod, setSignInMethod] = useState('password'); // 'password' | 'otp'
-  const [isVerifyingSignInOtp, setIsVerifyingSignInOtp] = useState(false);
-  const [otpCooldown, setOtpCooldown] = useState(60);
+  const [isVerifyingSignupOtp, setIsVerifyingSignupOtp] = useState<boolean>(false);
+  const [signInMethod, setSignInMethod] = useState<'password' | 'otp'>('password');
+  const [isVerifyingSignInOtp, setIsVerifyingSignInOtp] = useState<boolean>(false);
+  const [otpCooldown, setOtpCooldown] = useState<number>(60);
 
   // Taxonomy & Objectives from backend
-  const [sportsData, setSportsData] = useState({});
-  const [objectivesData, setObjectivesData] = useState({});
+  const [sportsData, setSportsData] = useState<Record<string, any>>({});
+  const [objectivesData, setObjectivesData] = useState<Record<string, any>>({});
 
   // Form State
   const [authData, setAuthData] = useState({
@@ -46,7 +45,7 @@ export default function Onboarding() {
     full_name: '',
   });
 
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<any>({
     sport: 'cricket',
     discipline: '',
     primary_role: 'batsman',
@@ -67,13 +66,13 @@ export default function Onboarding() {
           intakeAPI.getSports().catch(() => ({})),
           intakeAPI.getObjectives().catch(() => ({})),
         ]);
-        setSportsData(sports);
-        setObjectivesData(objs);
+        setSportsData(sports as Record<string, any>);
+        setObjectivesData(objs as Record<string, any>);
 
-        if (sports && sports['cricket']) {
-          const firstRoleKey = Object.keys(sports['cricket'].roles || {})[0] || 'batsman';
-          const firstSubKey = Object.keys(sports['cricket'].roles[firstRoleKey]?.sub_roles || {})[0] || '';
-          setProfileData((prev) => ({
+        if (sports && (sports as any)['cricket']) {
+          const firstRoleKey = Object.keys((sports as any)['cricket'].roles || {})[0] || 'batsman';
+          const firstSubKey = Object.keys((sports as any)['cricket'].roles[firstRoleKey]?.sub_roles || {})[0] || '';
+          setProfileData((prev: any) => ({
             ...prev,
             primary_role: firstRoleKey,
             sub_role: firstSubKey,
@@ -90,11 +89,11 @@ export default function Onboarding() {
   const currentRoles = currentSport.roles || {};
   const currentSubRoles = currentRoles[profileData.primary_role]?.sub_roles || {};
 
-  const handleSportSelect = (sportKey) => {
+  const handleSportSelect = (sportKey: string) => {
     const sportObj = sportsData[sportKey] || {};
     const firstRoleKey = Object.keys(sportObj.roles || {})[0] || '';
     const firstSubKey = Object.keys(sportObj.roles?.[firstRoleKey]?.sub_roles || {})[0] || '';
-    setProfileData((prev) => ({
+    setProfileData((prev: any) => ({
       ...prev,
       sport: sportKey,
       discipline: sportObj.disciplines?.[0]?.id || sportObj.disciplines?.[0] || '',
@@ -103,23 +102,23 @@ export default function Onboarding() {
     }));
   };
 
-  const handleRoleSelect = (roleKey) => {
+  const handleRoleSelect = (roleKey: string) => {
     const subRoles = currentRoles[roleKey]?.sub_roles || {};
     const firstSub = Object.keys(subRoles)[0] || '';
-    setProfileData((prev) => ({
+    setProfileData((prev: any) => ({
       ...prev,
       primary_role: roleKey,
       sub_role: firstSub,
     }));
   };
 
-  const toggleObjective = (objKey) => {
-    setProfileData((prev) => {
+  const toggleObjective = (objKey: string) => {
+    setProfileData((prev: any) => {
       const current = prev.development_objectives || [];
       if (current.includes(objKey)) {
         return {
           ...prev,
-          development_objectives: current.filter((k) => k !== objKey),
+          development_objectives: current.filter((k: string) => k !== objKey),
         };
       } else {
         return {
@@ -130,7 +129,7 @@ export default function Onboarding() {
     });
   };
 
-  const handleSignInSubmit = async (e) => {
+  const handleSignInSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setLoading(true);
     setError(null);
@@ -146,18 +145,18 @@ export default function Onboarding() {
         throw new Error('Authentication failed. No access token received.');
       }
 
-      login({ email: authData.email }, token, null);
+      login({ id: 0, email: authData.email, full_name: '' }, token, null);
       const me = await authAPI.getMe();
 
       try {
         const existingProfile = await intakeAPI.getProfile();
         login(me, token, existingProfile);
-      } catch (profileErr) {
+      } catch {
         login(me, token, null);
       }
 
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Incorrect email or password. Please verify your credentials.'
@@ -167,7 +166,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleSignInSendOtp = async (e) => {
+  const handleSignInSendOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!authData.email) {
       setError('Please enter your email address.');
@@ -183,7 +182,7 @@ export default function Onboarding() {
       });
       setOtpCooldown(res.cooldown_seconds || 60);
       setIsVerifyingSignInOtp(true);
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Failed to dispatch sign-in code. Please check your email and try again.'
@@ -193,7 +192,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleVerifySignInOtp = async (otpCode) => {
+  const handleVerifySignInOtp = async (otpCode: string) => {
     setLoading(true);
     setError(null);
 
@@ -209,8 +208,8 @@ export default function Onboarding() {
         throw new Error('Verification failed. No token received.');
       }
 
-      login({ email: authData.email }, token, null);
-      const me = await authAPI.getMe().catch(() => ({ email: authData.email }));
+      login({ id: 0, email: authData.email, full_name: '' }, token, null);
+      const me = await authAPI.getMe().catch(() => ({ id: 0, email: authData.email, full_name: '' }));
 
       try {
         const existingProfile = await intakeAPI.getProfile();
@@ -220,7 +219,7 @@ export default function Onboarding() {
       }
 
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Invalid or expired verification code. Please try again.'
@@ -230,7 +229,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleSignupRequestOtp = async (e) => {
+  const handleSignupRequestOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!authData.full_name || !authData.email || !authData.password) {
       setError('Please fill in your full name, email, and password.');
@@ -246,7 +245,7 @@ export default function Onboarding() {
       });
       setOtpCooldown(res.cooldown_seconds || 60);
       setIsVerifyingSignupOtp(true);
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Failed to send verification code. Please check your email and try again.'
@@ -256,7 +255,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleVerifySignupAndCreateProfile = async (otpCode) => {
+  const handleVerifySignupAndCreateProfile = async (otpCode: string) => {
     setLoading(true);
     setError(null);
 
@@ -274,9 +273,10 @@ export default function Onboarding() {
         throw new Error('Account creation failed. No token received.');
       }
 
-      login({ email: authData.email, full_name: authData.full_name }, token, null);
+      login({ id: 0, email: authData.email, full_name: authData.full_name }, token, null);
 
       const me = await authAPI.getMe().catch(() => ({
+        id: 0,
         email: authData.email,
         full_name: authData.full_name,
       }));
@@ -285,12 +285,9 @@ export default function Onboarding() {
         sport: profileData.sport,
         discipline: profileData.discipline,
         primary_role: profileData.primary_role,
-        sub_role: profileData.sub_role,
-        development_objectives: profileData.development_objectives,
+        secondary_role: profileData.sub_role,
         experience_level: profileData.experience_level,
-        training_days_per_week: Number(profileData.training_days_per_week),
-        session_duration_minutes: Number(profileData.session_duration_minutes),
-        age: Number(profileData.age),
+        training_frequency: Number(profileData.training_days_per_week),
         weight_kg: Number(profileData.weight_kg),
         height_cm: Number(profileData.height_cm),
       });
@@ -299,7 +296,7 @@ export default function Onboarding() {
       setProfile(savedProfile);
 
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Verification failed. Please check the code and try again.'
@@ -309,7 +306,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleProfileSubmit = async (e) => {
+  const handleProfileSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setLoading(true);
     setError(null);
@@ -322,21 +319,20 @@ export default function Onboarding() {
         sport: profileData.sport,
         discipline: profileData.discipline,
         primary_role: profileData.primary_role,
-        sub_role: profileData.sub_role,
-        development_objectives: profileData.development_objectives,
+        secondary_role: profileData.sub_role,
         experience_level: profileData.experience_level,
-        training_days_per_week: Number(profileData.training_days_per_week),
-        session_duration_minutes: Number(profileData.session_duration_minutes),
-        age: Number(profileData.age),
+        training_frequency: Number(profileData.training_days_per_week),
         weight_kg: Number(profileData.weight_kg),
         height_cm: Number(profileData.height_cm),
       });
 
-      login(me || { email: authData.email }, token, savedProfile);
+      if (token) {
+        login(me || { id: 0, email: authData.email, full_name: '' }, token, savedProfile);
+      }
       setProfile(savedProfile);
 
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err.response?.data?.detail ||
         'Failed to complete profile configuration. Please check your inputs.'
@@ -698,7 +694,7 @@ export default function Onboarding() {
                               key={subKey}
                               type="button"
                               onClick={() => {
-                                setProfileData((prev) => ({ ...prev, sub_role: subKey }));
+                                setProfileData((prev: any) => ({ ...prev, sub_role: subKey }));
                                 setIsSpecialtyOpen(false);
                               }}
                               className={`w-full p-2.5 rounded-lg text-left text-xs font-semibold flex items-center justify-between transition-all ${isSelected
@@ -1019,4 +1015,6 @@ export default function Onboarding() {
       </div>
     </div>
   );
-}
+};
+
+export default Onboarding;

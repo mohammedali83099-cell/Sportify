@@ -5,14 +5,13 @@ import { assessmentAPI, planAPI } from '../api/client';
 import { normalizeSport } from '../config/sportAssessmentConfig';
 import { getRoleBenchmarks } from '../config/taxonomyBenchmarks';
 import BiomechanicalRadarChart from '../components/common/BiomechanicalRadarChart';
-import BenchmarkBar from '../components/common/BenchmarkBar';
+import { AssessmentAnalysisResult } from '../types';
 import {
   CheckIcon,
   ChevronDownIcon,
   DumbbellIcon,
   ArrowRightIcon,
   AlertTriangleIcon,
-  TargetIcon,
 } from '../components/common/Icons';
 
 export default function Analysis() {
@@ -24,12 +23,14 @@ export default function Analysis() {
   const normalizedSport = profile?.sport ? normalizeSport(profile.sport) : 'cricket';
   const assessmentPath = `/assessment/${normalizedSport}`;
 
-  const [analysisData, setAnalysisData] = useState(
-    location.state?.result || currentAssessment || null
+  const [analysisData, setAnalysisData] = useState<AssessmentAnalysisResult | null>(
+    (location.state as { result?: AssessmentAnalysisResult } | null)?.result ||
+      (currentAssessment as unknown as AssessmentAnalysisResult) ||
+      null
   );
   const [generatingPlan, setGeneratingPlan] = useState(false);
   const [showRawDetails, setShowRawDetails] = useState(false);
-  const [activeMetricKey, setActiveMetricKey] = useState(null);
+  const [activeMetricKey, setActiveMetricKey] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchLatestIfNeeded() {
@@ -81,7 +82,7 @@ export default function Analysis() {
   const metricDetails = analysisData.metric_details || {};
   const feedback = analysisData.movement_feedback || [];
   const coaching = analysisData.coaching || {};
-  const overallQuality = analysisData.overall_movement_quality || 75.0;
+  const overallQuality = analysisData.overall_movement_quality ?? 75.0;
   const protocolName =
     analysisData.protocol_name || analysisData.protocol_id || 'Movement Assessment';
 
@@ -100,13 +101,13 @@ export default function Analysis() {
 
   // Retrieve athlete's exact role benchmarks from taxonomy
   const roleBenchmarks = getRoleBenchmarks(
-    profile?.sport,
-    profile?.primary_role,
-    profile?.sub_role,
-    profile?.experience_level
+    profile?.sport || 'cricket',
+    profile?.primary_role || profile?.role || 'striker',
+    profile?.sub_role || undefined,
+    profile?.experience_level || 'intermediate'
   );
 
-  const scoreEntries = Object.entries(scores);
+  const scoreEntries = Object.entries(scores) as [string, number][];
 
   // Derive bottlenecks: any metric where score < role benchmark, sorted by deficit
   const rawBottlenecks = scoreEntries
@@ -133,14 +134,14 @@ export default function Analysis() {
     });
 
   // Fallbacks if all scores are on one side
-  const displayBottlenecks =
+  const displayBottlenecks: [string, number][] =
     rawBottlenecks.length > 0
       ? rawBottlenecks
       : scoreEntries.length > 0
       ? [[...scoreEntries].sort((a, b) => a[1] - b[1])[0]]
       : [];
 
-  const displayStrengths =
+  const displayStrengths: [string, number][] =
     rawStrengths.length > 0
       ? rawStrengths
       : scoreEntries.length > 1
@@ -148,7 +149,7 @@ export default function Analysis() {
       : [];
 
   // Helper to extract actionable observation note for bottleneck card
-  const getBottleneckNote = (attrKey, score) => {
+  const getBottleneckNote = (attrKey: string, score: number) => {
     if (metricDetails[attrKey]?.observation) {
       return metricDetails[attrKey].observation;
     }
@@ -317,7 +318,6 @@ export default function Analysis() {
 
             <div className="space-y-1.5 pt-0.5">
               {displayStrengths.map(([attr, score]) => {
-                const bench = roleBenchmarks[attr] || 70;
                 const isActive = activeMetricKey === attr;
 
                 return (

@@ -5,10 +5,6 @@ import { progressAPI, planAPI, intakeAPI, assessmentAPI } from '../api/client';
 import { normalizeSport } from '../config/sportAssessmentConfig';
 import BenchmarkBar from '../components/common/BenchmarkBar';
 import {
-  StrengthIcon,
-  ProficientIcon,
-  DevAreaIcon,
-  CriticalIcon,
   TargetIcon,
   FlameIcon,
   ZapIcon,
@@ -20,6 +16,11 @@ import {
   ClockIcon,
   SportIcon,
 } from '../components/common/Icons';
+import {
+  DashboardResponse,
+  ProfileAttributeItem,
+  TrainingPlan,
+} from '../types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -30,9 +31,9 @@ export default function Dashboard() {
   const setAssessment = useAthleteStore((state) => state.setAssessment);
 
   const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [currentPlan, setCurrentPlan] = useState(null);
-  const [activeTier, setActiveTier] = useState('all');
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<TrainingPlan | null>(null);
+  const [activeTier, setActiveTier] = useState<string>('all');
 
   useEffect(() => {
     async function loadDashboard() {
@@ -72,7 +73,7 @@ export default function Dashboard() {
   const assessmentPath = `/assessment/${normalizedSport}`;
 
   // Formatting helpers
-  const formatTitle = (str) => {
+  const formatTitle = (str?: string | null) => {
     if (!str) return 'Athlete';
     return str
       .replace(/_/g, ' ')
@@ -83,7 +84,7 @@ export default function Dashboard() {
 
   const sportTitle = profile?.sport ? formatTitle(profile.sport) : 'Sportify';
   const roleTitle = formatTitle(profile?.sub_role || profile?.primary_role || 'Athlete');
-  const athleteName = athlete?.full_name || athlete?.name || 'Athlete';
+  const athleteName = athlete?.full_name || (athlete as any)?.name || 'Athlete';
 
   const hasAssessment = Boolean(
     bottlenecks.length > 0 ||
@@ -92,13 +93,13 @@ export default function Dashboard() {
     devAreas.length > 0 ||
     currentAssessment
   );
-  const hasPlan = Boolean(currentPlan?.plan_data?.weeks?.length);
+  const hasPlan = Boolean((currentPlan as any)?.plan_data?.weeks?.length);
 
   // Top prioritized bottleneck or development focus
   const topBottleneck = bottlenecks[0] || devAreas[0] || null;
 
   // Active training session helper
-  const activeWeek = currentPlan?.plan_data?.weeks?.[0];
+  const activeWeek = (currentPlan as any)?.plan_data?.weeks?.[0];
   const activeSession = activeWeek?.sessions?.[0];
 
   // ── ATHLETE DEVELOPMENT PATHWAY STAGES (Derived strictly from real state) ──
@@ -160,7 +161,7 @@ export default function Dashboard() {
 
   // Tagged metrics for Movement Profile list
   const allTaggedItems = useMemo(() => {
-    const list = [];
+    const list: ProfileAttributeItem[] = [];
     bottlenecks.forEach((i) => list.push({ ...i, tier: 'bottleneck' }));
     devAreas.forEach((i) => list.push({ ...i, tier: 'dev_area' }));
     proficient.forEach((i) => list.push({ ...i, tier: 'proficient' }));
@@ -268,7 +269,7 @@ export default function Dashboard() {
 
         {/* Connected Progression Track */}
         <div className="grid grid-cols-5 gap-1 sm:gap-2 relative pt-1">
-          {developmentStages.map((stage, idx) => (
+          {developmentStages.map((stage) => (
             <div
               key={stage.id}
               className={`relative flex flex-col items-center text-center p-2 rounded-lg transition-all ${
@@ -485,7 +486,7 @@ export default function Dashboard() {
                 className="w-full h-full select-none pointer-events-none"
                 fill="none"
               >
-                {/* 1. Faint Technical Grid & Axis Crosshairs */}
+                {/* 1. Technical Grid & Axis Crosshairs */}
                 <g stroke="white" strokeOpacity="0.035" strokeWidth="0.75">
                   <line x1="20" y1="45" x2="200" y2="45" strokeDasharray="3 4" />
                   <line x1="20" y1="90" x2="200" y2="90" />
@@ -495,7 +496,7 @@ export default function Dashboard() {
                   <line x1="165" y1="15" x2="165" y2="165" strokeDasharray="3 4" />
                 </g>
 
-                {/* Faint Corner Alignment Ticks */}
+                {/* Corner Alignment Ticks */}
                 <g stroke="white" strokeOpacity="0.1" strokeWidth="0.75">
                   <path d="M22 22 h6 M22 22 v6" />
                   <path d="M198 22 h-6 M198 22 v6" />
@@ -508,14 +509,13 @@ export default function Dashboard() {
                 <circle cx="110" cy="90" r="42" stroke="white" strokeOpacity="0.07" strokeWidth="0.75" strokeDasharray="3 4" />
                 <circle cx="110" cy="90" r="22" stroke="white" strokeOpacity="0.05" strokeWidth="0.75" />
 
-                {/* Subtle Coordinate Axis Dots */}
+                {/* Coordinate Axis Dots */}
                 <circle cx="110" cy="28" r="1" fill="white" fillOpacity="0.25" />
                 <circle cx="110" cy="152" r="1" fill="white" fillOpacity="0.25" />
                 <circle cx="48" cy="90" r="1" fill="white" fillOpacity="0.25" />
                 <circle cx="172" cy="90" r="1" fill="white" fillOpacity="0.25" />
 
                 {/* 3. Simple Trajectory Lines & Motion Nodes */}
-                {/* Secondary Faint Path */}
                 <line
                   x1="110"
                   y1="82"
@@ -563,7 +563,7 @@ export default function Dashboard() {
           </span>
         </div>
 
-        {/* 4A. Training Action Protocol (Stacked Vertically) */}
+        {/* 4A. Training Action Protocol */}
         <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-white/[0.035] via-white/[0.02] to-white/[0.01] backdrop-blur-md border border-white/[0.08] shadow-sm hover:border-white/15 transition-all space-y-3">
           {/* Category & Status */}
           <div className="flex items-center justify-between text-xs">
@@ -585,13 +585,13 @@ export default function Dashboard() {
             <h3 className="text-sm sm:text-base font-bold font-heading text-white">
               {activeSession?.session_name ||
                 activeWeek?.week_theme ||
-                currentPlan?.plan_data?.plan_title ||
+                (currentPlan as any)?.plan_data?.plan_title ||
                 'Individualized Movement Development Pathway'}
             </h3>
             <p className="text-xs text-slate-400 font-sans leading-relaxed mt-1">
               {hasPlan
                 ? activeSession?.rationale ||
-                  currentPlan?.plan_data?.plan_summary ||
+                  (currentPlan as any)?.plan_data?.plan_summary ||
                   'Prescribed training stimulus designed to resolve identified movement bottlenecks.'
                 : 'Complete your baseline movement assessment to calibrate individual joint loads and unlock customized training sessions.'}
             </p>
@@ -618,7 +618,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 4B. Recovery Action Protocol (Stacked Vertically) */}
+        {/* 4B. Recovery Action Protocol */}
         <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-white/[0.035] via-white/[0.02] to-white/[0.01] backdrop-blur-md border border-white/[0.08] shadow-sm hover:border-white/15 transition-all space-y-3">
           {/* Category & Status */}
           <div className="flex items-center justify-between text-xs">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAthleteStore } from '../store/athleteStore';
 import { planAPI } from '../api/client';
+import { RecoveryPlanData } from '../types';
 import {
   CheckIcon,
   ClockIcon,
@@ -9,7 +10,7 @@ import {
 
 export default function RecoveryPlan() {
   const profile = useAthleteStore((state) => state.profile);
-  const [recoveryData, setRecoveryData] = useState(null);
+  const [recoveryData, setRecoveryData] = useState<RecoveryPlanData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -235,4 +236,3 @@ export default function RecoveryPlan() {
     </div>
   );
 }
-

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAthleteStore } from '../store/athleteStore';
 import { planAPI, progressAPI } from '../api/client';
+import { TrainingPlanData, PlanSessionItem } from '../types';
 import {
-  DumbbellIcon,
   ClockIcon,
   CheckIcon,
-  CalendarIcon,
   ZapIcon,
   CloseIcon,
-  FlameIcon,
 } from '../components/common/Icons';
 
 export default function TrainingPlan() {
@@ -16,15 +14,20 @@ export default function TrainingPlan() {
   const setPlan = useAthleteStore((state) => state.setPlan);
   const profile = useAthleteStore((state) => state.profile);
 
-  const [planData, setPlanData] = useState(currentPlan?.plan_data || null);
+  const [planData, setPlanData] = useState<TrainingPlanData | null>(currentPlan?.plan_data || null);
   const [loading, setLoading] = useState(!currentPlan);
   const [generating, setGenerating] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(1);
-  const [selectedSession, setSelectedSession] = useState(null);
+  const [selectedSession, setSelectedSession] = useState<PlanSessionItem | null>(null);
 
   // Logging Workout Modal State
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-  const [logForm, setLogForm] = useState({
+  const [logForm, setLogForm] = useState<{
+    session_type: string;
+    duration_minutes: number | string;
+    perceived_exertion: number | string;
+    notes: string;
+  }>({
     session_type: 'Strength',
     duration_minutes: 60,
     perceived_exertion: 7,
@@ -38,7 +41,7 @@ export default function TrainingPlan() {
         const res = await planAPI.getCurrent();
         if (res) {
           setPlan(res);
-          setPlanData(res.plan_data);
+          setPlanData(res.plan_data || null);
         }
       } catch (err) {
         handleGeneratePlan();
@@ -49,7 +52,7 @@ export default function TrainingPlan() {
     if (!currentPlan) {
       fetchPlan();
     } else {
-      setPlanData(currentPlan.plan_data);
+      setPlanData(currentPlan.plan_data || null);
       setLoading(false);
     }
   }, [currentPlan, setPlan]);
@@ -59,7 +62,7 @@ export default function TrainingPlan() {
     try {
       const res = await planAPI.generate();
       setPlan(res);
-      setPlanData(res.plan_data);
+      setPlanData(res.plan_data || null);
     } catch (err) {
       console.error('Failed to generate plan:', err);
     } finally {
@@ -67,7 +70,7 @@ export default function TrainingPlan() {
     }
   };
 
-  const handleOpenLogModal = (session) => {
+  const handleOpenLogModal = (session: PlanSessionItem) => {
     setSelectedSession(session);
     setLogForm({
       session_type: session?.type || 'Strength',
@@ -79,7 +82,7 @@ export default function TrainingPlan() {
     setIsLogModalOpen(true);
   };
 
-  const handleSubmitLog = async (e) => {
+  const handleSubmitLog = async (e?: React.FormEvent) => {
     e?.preventDefault();
     try {
       await progressAPI.logSession({
@@ -115,7 +118,7 @@ export default function TrainingPlan() {
   const currentWeekData = weeks.find((w) => w.week_number === selectedWeek) || weeks[0];
   const sessions = currentWeekData?.sessions || [];
 
-  const formatConciseSummary = (summary) => {
+  const formatConciseSummary = (summary?: string) => {
     if (!summary) return 'Targeted progressive overload for your movement priorities.';
     const focusMatch = summary.match(/primary focus on ([^.]+)/i);
     if (focusMatch) {

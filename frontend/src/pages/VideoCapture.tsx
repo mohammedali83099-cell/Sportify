@@ -7,7 +7,7 @@ import { normalizeSport } from '../config/sportAssessmentConfig';
  * Backward-compatible redirect for /video
  * Routes athletes directly to their personalized /assessment/:sport studio once hydrated.
  */
-export default function VideoCapture() {
+export const VideoCapture: React.FC = () => {
   const profile = useAthleteStore((state) => state.profile);
   const profileStatus = useAthleteStore((state) => state.profileStatus);
 
@@ -30,4 +30,6 @@ export default function VideoCapture() {
   }
 
   return <Navigate to="/onboarding?mode=complete-profile" replace />;
-}
+};
+
+export default VideoCapture;

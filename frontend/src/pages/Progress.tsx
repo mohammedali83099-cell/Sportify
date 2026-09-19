@@ -13,9 +13,13 @@ import {
   ZapIcon,
   ArrowRightIcon,
   ActivityIcon,
-  ClockIcon,
   InfoIcon,
 } from '../components/common/Icons';
+import {
+  DashboardResponse,
+  TrainingLogItem,
+  ReassessmentData,
+} from '../types';
 
 export default function Progress() {
   const profile = useAthleteStore((state) => state.profile);
@@ -27,11 +31,11 @@ export default function Progress() {
   const normalizedSport = profile?.sport ? normalizeSport(profile.sport) : 'cricket';
   const assessmentPath = `/assessment/${normalizedSport}`;
 
-  const [dashboardData, setDashboardData] = useState(null);
-  const [logs, setLogs] = useState([]);
-  const [reassessment, setReassessment] = useState(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+  const [logs, setLogs] = useState<TrainingLogItem[]>([]);
+  const [reassessment, setReassessment] = useState<ReassessmentData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('reassessment'); // 'reassessment' | 'history'
+  const [activeTab, setActiveTab] = useState<'reassessment' | 'history'>('reassessment');
 
   useEffect(() => {
     async function loadProgress() {
@@ -68,7 +72,7 @@ export default function Progress() {
   const hasMultipleAssessments = Boolean(
     reassessment && Object.keys(reassessment.metric_deltas || {}).length > 0
   );
-  const movementScores = currentAssessment?.movement_scores || null;
+  const movementScores = (currentAssessment as any)?.movement_scores || null;
   const devProfile = dashboardData?.development_profile || null;
   const hasBaseline = Boolean(currentAssessment || devProfile || movementScores);
 
@@ -76,14 +80,14 @@ export default function Progress() {
   const baselineMetrics = useMemo(() => {
     if (movementScores && Object.keys(movementScores).length > 0) {
       const benchmarks = getRoleBenchmarks(
-        profile?.sport,
-        profile?.role,
-        profile?.sub_role,
-        profile?.experience_level
+        profile?.sport || 'cricket',
+        profile?.primary_role || profile?.role || 'striker',
+        profile?.sub_role || undefined,
+        profile?.experience_level || 'intermediate'
       );
       return Object.entries(movementScores).map(([key, score]) => {
         const benchmark = benchmarks[key] || 75;
-        const numScore = Math.round(score);
+        const numScore = Math.round(score as number);
         const gap = numScore - benchmark;
         const name = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
         return {
@@ -104,7 +108,7 @@ export default function Progress() {
       ];
       if (all.length > 0) {
         return all.map((item) => ({
-          key: item.attribute || item.name,
+          key: item.attribute || item.name || '',
           name:
             item.name ||
             (item.attribute
@@ -124,23 +128,29 @@ export default function Progress() {
   }, [movementScores, devProfile, profile]);
 
   const activeBottlenecks = useMemo(() => {
-    if (devProfile?.critical_bottlenecks?.length > 0 || devProfile?.development_areas?.length > 0) {
+    if (
+      (devProfile?.critical_bottlenecks && devProfile.critical_bottlenecks.length > 0) ||
+      (devProfile?.development_areas && devProfile.development_areas.length > 0)
+    ) {
       return [
         ...(devProfile.critical_bottlenecks || []),
         ...(devProfile.development_areas || []),
       ];
     }
-    if (dashboardData?.bottlenecks?.length > 0) {
-      return dashboardData.bottlenecks;
+    if ((dashboardData as any)?.bottlenecks?.length > 0) {
+      return (dashboardData as any).bottlenecks;
     }
-    if (bottlenecksStore?.length > 0) {
+    if (bottlenecksStore && bottlenecksStore.length > 0) {
       return bottlenecksStore;
     }
     return [];
   }, [devProfile, dashboardData, bottlenecksStore]);
 
   const activeStrengths = useMemo(() => {
-    if (devProfile?.strengths?.length > 0 || devProfile?.proficient?.length > 0) {
+    if (
+      (devProfile?.strengths && devProfile.strengths.length > 0) ||
+      (devProfile?.proficient && devProfile.proficient.length > 0)
+    ) {
       return [...(devProfile.strengths || []), ...(devProfile.proficient || [])];
     }
     return [];
@@ -243,7 +253,7 @@ export default function Progress() {
               <span className="font-sans font-medium">Workload</span>
             </div>
             <p className="text-lg sm:text-xl font-bold font-mono text-white">
-              {stats.total_workload ? stats.total_workload.toFixed(0) : '0'}
+              {(stats as any).total_workload ? (stats as any).total_workload.toFixed(0) : '0'}
               <span className="text-xs font-normal text-slate-400 ml-1">AU</span>
             </p>
           </div>
@@ -405,7 +415,7 @@ export default function Progress() {
                 <p className="text-[11px] text-slate-300 font-sans leading-relaxed mt-0.5">
                   {hasBaseline
                     ? `${stats.total_sessions || logs.length} sessions logged • ${
-                        stats.total_workload ? stats.total_workload.toFixed(0) : '0'
+                        (stats as any).total_workload ? (stats as any).total_workload.toFixed(0) : '0'
                       } AU workload targeting identified movement bottlenecks.`
                     : 'Prescribed training pathway designed to correct specific kinematic bottlenecks.'}
                 </p>
@@ -462,8 +472,8 @@ export default function Progress() {
                 </h3>
                 <p className="text-[11px] text-slate-400 font-sans leading-relaxed mt-0.5">
                   {hasMultipleAssessments
-                    ? `Trajectory: ${reassessment.overall_trajectory || 'Advancing'} (+${
-                        reassessment.average_delta
+                    ? `Trajectory: ${reassessment?.overall_trajectory || 'Advancing'} (+${
+                        reassessment?.average_delta
                       } pts avg delta across shared metrics).`
                     : 'Reassess movement mechanics to quantify bottleneck resolution and measure adaptation.'}
                 </p>
@@ -504,7 +514,7 @@ export default function Progress() {
       {/* ── 4. REASSESSMENT / BIOMECHANICAL DEVELOPMENT VISUALIZATION ───────── */}
       {activeTab === 'reassessment' && (
         <div className="space-y-4">
-          {hasMultipleAssessments ? (
+          {hasMultipleAssessments && reassessment ? (
             /* Populated Reassessment Data View (2+ assessments) */
             <div className="space-y-4">
               {/* Longitudinal Delta Header Callout */}
@@ -535,7 +545,7 @@ export default function Progress() {
 
                   <div className="space-y-2.5">
                     {Object.keys(reassessment.metric_deltas || {}).map((key) => {
-                      const m = reassessment.metric_deltas[key];
+                      const m = reassessment.metric_deltas![key];
                       const isUp = m.delta > 0;
                       const isDown = m.delta < 0;
                       return (
@@ -557,7 +567,7 @@ export default function Progress() {
                               </span>
                               <span
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                  isUp
+                                   isUp
                                     ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                                     : isDown
                                     ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
@@ -616,7 +626,7 @@ export default function Progress() {
                     </span>
                   </div>
                   <div className="space-y-1.5 pt-1">
-                    {reassessment.resolved_bottlenecks?.length > 0 ? (
+                    {reassessment.resolved_bottlenecks && reassessment.resolved_bottlenecks.length > 0 ? (
                       reassessment.resolved_bottlenecks.map((item) => (
                         <div
                           key={item.attribute}
@@ -647,7 +657,7 @@ export default function Progress() {
                     </span>
                   </div>
                   <div className="space-y-1.5 pt-1">
-                    {reassessment.emerging_priorities?.length > 0 ? (
+                    {reassessment.emerging_priorities && reassessment.emerging_priorities.length > 0 ? (
                       reassessment.emerging_priorities.map((item) => (
                         <div
                           key={item.attribute}
@@ -796,7 +806,7 @@ export default function Progress() {
                   </div>
                   <div className="space-y-1.5 pt-1">
                     {activeBottlenecks.length > 0 ? (
-                      activeBottlenecks.map((item, idx) => (
+                      activeBottlenecks.map((item: any, idx: number) => (
                         <div
                           key={item.attribute || idx}
                           className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/25 flex items-center justify-between text-xs text-rose-200"
@@ -829,7 +839,7 @@ export default function Progress() {
                   </div>
                   <div className="space-y-1.5 pt-1">
                     {activeStrengths.length > 0 ? (
-                      activeStrengths.map((item, idx) => (
+                      activeStrengths.map((item: any, idx: number) => (
                         <div
                           key={item.attribute || idx}
                           className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-200"
@@ -891,9 +901,9 @@ export default function Progress() {
 
           <div className="space-y-2 pt-1">
             {logs.length > 0 ? (
-              logs.map((log) => (
+              logs.map((log, idx) => (
                 <div
-                  key={log.id}
+                  key={log.id || idx}
                   className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">

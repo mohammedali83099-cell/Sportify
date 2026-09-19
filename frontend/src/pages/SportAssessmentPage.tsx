@@ -15,9 +15,8 @@ import FoundationalSection from '../components/assessment/FoundationalSection';
 import RoleNoticeCard from '../components/assessment/RoleNoticeCard';
 import { TargetIcon, ArrowRightIcon, AlertTriangleIcon, SlidersIcon } from '../components/common/Icons';
 
-export default function SportAssessmentPage() {
-  // ── UNCONDITIONAL HOOK DECLARATIONS AT TOP ──────────────────────────────────
-  const { sport: rawSportParam } = useParams();
+export const SportAssessmentPage: React.FC = () => {
+  const { sport: rawSportParam } = useParams<{ sport: string }>();
   const navigate = useNavigate();
 
   const profile = useAthleteStore((state) => state.profile);
@@ -25,7 +24,7 @@ export default function SportAssessmentPage() {
   const currentAssessment = useAthleteStore((state) => state.currentAssessment);
   const setAssessment = useAthleteStore((state) => state.setAssessment);
 
-  const [selectedProtocolId, setSelectedProtocolId] = useState(null);
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(null);
 
   // Hydrate latest assessment if not already in store
   useEffect(() => {
@@ -33,8 +32,8 @@ export default function SportAssessmentPage() {
       if (!currentAssessment) {
         try {
           const res = await assessmentAPI.getLatest();
-          if (res?.assessment) {
-            setAssessment(res.assessment);
+          if (res) {
+            setAssessment(res);
           }
         } catch {
           // No prior assessment yet
@@ -46,14 +45,14 @@ export default function SportAssessmentPage() {
 
   // Derived normalized sport values
   const athleteSportNormalized = profile?.sport ? normalizeSport(profile.sport) : null;
-  const urlSportNormalized = normalizeSport(rawSportParam);
+  const urlSportNormalized = rawSportParam ? normalizeSport(rawSportParam) : null;
 
   // Resolve assessment context for the athlete's actual sport and role
   const assessmentContext = athleteSportNormalized
     ? getSportAssessmentContext({
         sport: athleteSportNormalized,
         role: profile?.primary_role,
-        subRole: profile?.sub_role,
+        subRole: profile?.secondary_role,
       })
     : null;
 
@@ -181,6 +180,7 @@ export default function SportAssessmentPage() {
 
   // Build the active protocol card payload
   const activeProtocolCardData = {
+    id: activeProtocolId,
     protocolId: activeProtocolId,
     name: activeProtocolName,
     shortPurpose: activeProtocolGuide.shortPurpose,
@@ -196,12 +196,11 @@ export default function SportAssessmentPage() {
         sportName={assessmentContext.theme.displayName}
         badgeLabel={assessmentContext.theme.badgeLabel}
         roleName={profile.primary_role}
-        subRole={profile.sub_role}
+        subRole={profile.secondary_role}
         experienceLevel={profile.experience_level}
-        recommendedCount={1}
       />
 
-      {/* 2. Optional Non-Blocking Role Notice (e.g. Bowling delivery coming soon) */}
+      {/* 2. Optional Non-Blocking Role Notice */}
       {assessmentContext.notice && <RoleNoticeCard notice={assessmentContext.notice} />}
 
       {/* 3. All-Rounder Focus Switcher (Cricket All-Rounder only) */}
@@ -212,7 +211,7 @@ export default function SportAssessmentPage() {
             <span>Select All-Rounder Focus Today</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            {assessmentContext.roleConfig.focusChoices?.map((choice) => (
+            {assessmentContext.roleConfig.focusChoices?.map((choice: any) => (
               <button
                 key={choice.protocolId}
                 type="button"
@@ -253,7 +252,7 @@ export default function SportAssessmentPage() {
           </button>
 
           {/* Foundational Baselines Tabs */}
-          {assessmentContext.foundationalOptions?.map((opt) => (
+          {assessmentContext.foundationalOptions?.map((opt: any) => (
             <button
               key={opt.protocolId}
               type="button"
@@ -274,7 +273,7 @@ export default function SportAssessmentPage() {
       <AssessmentUploader
         sportKey={assessmentContext.sportKey}
         primaryRole={profile.primary_role}
-        subRole={profile.sub_role}
+        subRole={profile.secondary_role}
         activeProtocolId={activeProtocolId}
         activeProtocolName={activeProtocolName}
         uploadLabel={activeProtocolGuide.uploadLabel}
@@ -288,7 +287,6 @@ export default function SportAssessmentPage() {
           status={activeCapabilityStatus}
           roleReason={activeRoleReason}
           isSelected={true}
-          onSelect={() => {}}
         />
 
         <CameraSetupGuide
@@ -310,4 +308,6 @@ export default function SportAssessmentPage() {
       />
     </div>
   );
-}
+};
+
+export default SportAssessmentPage;

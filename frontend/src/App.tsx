@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAthleteStore } from './store/athleteStore';
 
@@ -21,7 +21,11 @@ import Progress from './pages/Progress';
 import MobileTopBar from './components/layout/MobileTopBar';
 import MobileBottomNav from './components/layout/MobileBottomNav';
 
-const ProtectedRoute = ({ children }) => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const token = useAthleteStore((state) => state.token);
   const isAuthenticated = useAthleteStore((state) => state.isAuthenticated);
 
@@ -29,10 +33,14 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/onboarding?mode=signin" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
-const AppLayout = ({ children }) => {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-[100dvh] bg-[#07080C] text-[#F1F5F9] flex flex-col w-full selection:bg-white/20 relative">
       <MobileTopBar />
@@ -44,7 +52,7 @@ const AppLayout = ({ children }) => {
   );
 };
 
-function App() {
+export const App: React.FC = () => {
   return (
     <AppErrorBoundary>
       <ProfileHydrationGate>
@@ -125,6 +133,6 @@ function App() {
       </ProfileHydrationGate>
     </AppErrorBoundary>
   );
-}
+};
 
 export default App;

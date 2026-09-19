@@ -8,12 +8,20 @@ import {
   ArrowRightIcon,
   ShieldIcon,
   TrendingUpIcon,
+  IconProps,
 } from '../components/common/Icons';
 
-export default function Landing() {
+interface PlatformStep {
+  step: string;
+  phase: string;
+  icon: React.FC<IconProps>;
+  action: string;
+}
+
+export const Landing: React.FC = () => {
   const navigate = useNavigate();
 
-  const platformLoop = [
+  const platformLoop: PlatformStep[] = [
     {
       step: '01',
       phase: 'ASSESS',
@@ -53,7 +61,7 @@ export default function Landing() {
       <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-emerald-500/[0.02] blur-[120px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-5xl mx-auto min-h-[100dvh] flex flex-col justify-between p-4 sm:p-6 md:p-8 relative z-10">
-        {/* ── 1. TOP HEADER (Existing logo & Sign In preserved) ─────────────── */}
+        {/* ── 1. TOP HEADER ─────────────── */}
         <header className="flex items-center justify-between pt-safe">
           <Link to="/" className="focus:outline-none">
             <SportifyLogo size="xs" showTagline={false} />
@@ -150,4 +158,6 @@ export default function Landing() {
       </div>
     </div>
   );
-}
+};
+
+export default Landing;
