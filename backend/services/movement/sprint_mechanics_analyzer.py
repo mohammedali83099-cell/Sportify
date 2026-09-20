@@ -113,13 +113,13 @@ class SprintMechanicsAnalyzer(MovementProtocol):
         avg_torso_lean = float(np.mean(torso_leans))
         if 10.0 <= avg_torso_lean <= 28.0:
             posture_score = 90.0
-            posture_interp = f"Optimal acceleration forward lean angle ({avg_torso_lean:.1f}°) through the hips."
+            posture_interp = f"Optimal acceleration forward lean angle (~{round(avg_torso_lean)}°) through the hips."
         elif avg_torso_lean < 10.0:
             posture_score = 72.0
-            posture_interp = f"Upright torso posture ({avg_torso_lean:.1f}°). Premature transition out of drive phase."
+            posture_interp = f"Upright torso posture (~{round(avg_torso_lean)}°). Premature transition out of drive phase."
         else:
             posture_score = 65.0
-            posture_interp = f"Excessive forward torso break ({avg_torso_lean:.1f}°). Check core and glute drive."
+            posture_interp = f"Excessive forward torso break (~{round(avg_torso_lean)}°). Check core and glute drive."
 
         # 3. Explosive Frequency & Leg Speed
         if max_ankle_speed >= 0.90:
@@ -145,7 +145,7 @@ class SprintMechanicsAnalyzer(MovementProtocol):
             symmetry_interp = "Significant limb asymmetry in sprint cycle. Posterior chain imbalance."
 
         # 5. Hip Mobility & Posterior Drive Range
-        hip_mobility_score = round((knee_drive_score * 0.6 + symmetry_score * 0.4), 1)
+        hip_mobility_score = round(knee_drive_score * 0.6 + symmetry_score * 0.4)
         hip_interp = "Free dynamic hip extension and flexion throughout acceleration cycle." if hip_mobility_score >= 80 else "Constrained hip dynamic excursion."
 
         overall_quality = round(
@@ -155,52 +155,51 @@ class SprintMechanicsAnalyzer(MovementProtocol):
                 + posture_score * 0.20
                 + symmetry_score * 0.15
                 + hip_mobility_score * 0.10
-            ),
-            1,
+            )
         )
 
         metrics = {
-            "explosive_capacity": round(explosive_score, 1),
-            "upper_body_posture": round(posture_score, 1),
-            "hip_mobility": round(hip_mobility_score, 1),
-            "movement_symmetry": round(symmetry_score, 1),
-            "knee_stability": round(knee_drive_score, 1),
+            "explosive_capacity": round(explosive_score),
+            "upper_body_posture": round(posture_score),
+            "hip_mobility": round(hip_mobility_score),
+            "movement_symmetry": round(symmetry_score),
+            "knee_stability": round(knee_drive_score),
         }
 
         metric_details = {
             "explosive_capacity": MetricObservation(
                 name="Stride Turnover Velocity",
-                score=round(explosive_score, 1),
+                score=round(explosive_score),
                 raw_value=round(max_ankle_speed, 2),
                 unit="speed",
                 interpretation=explosive_interp,
             ),
             "upper_body_posture": MetricObservation(
                 name="Acceleration Drive Angle",
-                score=round(posture_score, 1),
-                raw_value=round(avg_torso_lean, 1),
+                score=round(posture_score),
+                raw_value=round(avg_torso_lean),
                 unit="deg",
                 interpretation=posture_interp,
             ),
             "hip_mobility": MetricObservation(
                 name="Dynamic Hip Excursion",
-                score=round(hip_mobility_score, 1),
+                score=round(hip_mobility_score),
                 interpretation=hip_interp,
             ),
             "movement_symmetry": MetricObservation(
                 name="Bilateral Stride Symmetry",
-                score=round(symmetry_score, 1),
+                score=round(symmetry_score),
                 interpretation=symmetry_interp,
             ),
             "knee_stability": MetricObservation(
                 name="High Knee Drive Elevation",
-                score=round(knee_drive_score, 1),
+                score=round(knee_drive_score),
                 interpretation=knee_drive_interp,
             ),
         }
 
         observations = [
-            f"Sprint Acceleration mechanics analyzed at {fps:.0f} FPS across stride cycles.",
+            f"Sprint Acceleration mechanics analyzed across stride cycles.",
             knee_drive_interp,
             explosive_interp,
             posture_interp,
@@ -217,7 +216,7 @@ class SprintMechanicsAnalyzer(MovementProtocol):
             metric_details=metric_details,
             phase_breakdown={
                 "peak_turnover_velocity": round(max_ankle_speed, 2),
-                "avg_acceleration_lean": round(avg_torso_lean, 1),
+                "avg_acceleration_lean": round(avg_torso_lean),
             },
             observations=observations,
         )

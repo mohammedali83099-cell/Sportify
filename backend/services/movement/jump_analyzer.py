@@ -100,13 +100,13 @@ class VerticalJumpAnalyzer(MovementProtocol):
         # ── 2. Countermovement Loading Depth ────────────────────────────────────
         if 90.0 <= dip_knee_angle <= 125.0:
             load_score = 90.0
-            load_interp = f"Optimal countermovement depth ({round(dip_knee_angle, 1)}° knee angle) for elastic energy utilization."
+            load_interp = f"Optimal countermovement depth (~{round(dip_knee_angle)}° knee angle) for elastic energy utilization."
         elif dip_knee_angle < 90.0:
             load_score = 75.0
-            load_interp = f"Deep loading dip ({round(dip_knee_angle, 1)}°); deep knee bend increases transition time."
+            load_interp = f"Deep loading dip (~{round(dip_knee_angle)}°); deep knee bend increases transition time."
         else:
             load_score = 65.0
-            load_interp = f"Shallow countermovement ({round(dip_knee_angle, 1)}°); under-utilizing hip and knee flexors."
+            load_interp = f"Shallow countermovement (~{round(dip_knee_angle)}°); under-utilizing hip and knee flexors."
 
         # ── 3. Landing & Knee Deceleration Stability ────────────────────────────
         landing_window = knee_angles[apex_idx:]
@@ -127,44 +127,43 @@ class VerticalJumpAnalyzer(MovementProtocol):
             stability_interp = "Landing phase partially captured."
 
         overall_score = round(
-            float(explosive_score * 0.45 + load_score * 0.30 + stability_score * 0.25),
-            1,
+            float(explosive_score * 0.45 + load_score * 0.30 + stability_score * 0.25)
         )
 
         metrics = {
-            "explosive_capacity": round(float(explosive_score), 1),
-            "knee_stability": round(float(stability_score), 1),
-            "hip_mobility": round(float(load_score), 1),
-            "upper_body_posture": round(float(min(95.0, explosive_score * 0.95)), 1),
-            "movement_symmetry": round(float(min(92.0, (load_score + stability_score) / 2)), 1),
-            "balance": round(float(stability_score), 1),
+            "explosive_capacity": round(float(explosive_score)),
+            "knee_stability": round(float(stability_score)),
+            "hip_mobility": round(float(load_score)),
+            "upper_body_posture": round(float(min(95.0, explosive_score * 0.95))),
+            "movement_symmetry": round(float(min(92.0, (load_score + stability_score) / 2))),
+            "balance": round(float(stability_score)),
         }
 
         metric_details = {
             "explosive_capacity": MetricObservation(
                 name="Rate of Force Development",
-                score=round(float(explosive_score), 1),
+                score=round(float(explosive_score)),
                 raw_value=round(elevation_velocity, 2),
                 unit="velocity index",
                 interpretation=explosive_interp,
             ),
             "loading_depth": MetricObservation(
                 name="Countermovement Load Angle",
-                score=round(float(load_score), 1),
-                raw_value=round(dip_knee_angle, 1),
+                score=round(float(load_score)),
+                raw_value=round(dip_knee_angle),
                 unit="degrees",
                 interpretation=load_interp,
             ),
             "knee_stability": MetricObservation(
                 name="Landing Force Absorption",
-                score=round(float(stability_score), 1),
+                score=round(float(stability_score)),
                 unit="absorption index",
                 interpretation=stability_interp,
             ),
         }
 
         observations = [
-            f"Jump takeoff reached elevation index {round(elevation_velocity, 2)} at apex frame {apex_idx}.",
+            f"Jump takeoff achieved explosive elevation at apex frame {apex_idx}.",
             explosive_interp,
             load_interp,
             stability_interp,
@@ -181,7 +180,7 @@ class VerticalJumpAnalyzer(MovementProtocol):
             phase_breakdown={
                 "dip_frame": dip_idx,
                 "apex_frame": apex_idx,
-                "dip_knee_angle": round(dip_knee_angle, 1),
+                "dip_knee_angle": round(dip_knee_angle),
             },
             observations=observations,
         )

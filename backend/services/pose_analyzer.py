@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Any
 from .pose_detector import get_pose_detector
 from .movement.registry import protocol_registry
 from .movement.quality_gate import VideoQualityGate
-from .movement.base import MovementAnalysisResult, QualityReport
+from .movement.base import MovementAnalysisResult, QualityReport, MovementProtocol
 
 
 class PoseAnalyzer:
@@ -36,34 +36,80 @@ class PoseAnalyzer:
         4. Runs activity-specific analyzer.
         5. Returns structured MovementAnalysisResult dictionary.
         """
-        # Guard 1: Check activity/protocol selection
+    def _auto_detect_protocol(
+        self,
+        landmarks_seq: List[Dict[int, List[float]]],
+        athlete_context: Optional[Dict[str, Any]] = None,
+    ) -> MovementProtocol:
+        """
+        Classifies the movement from kinematic landmarks and athlete profile context.
+        """
+        if not landmarks_seq or len(landmarks_seq) < 5:
+            return self.registry.get_protocol("squat")
+
+        import numpy as np
+        sport = (athlete_context.get("sport") or "").lower() if athlete_context else ""
+        role = (athlete_context.get("primary_role") or athlete_context.get("role") or "").lower() if athlete_context else ""
+
+        # Extract hip and knee motions across sequence
+        hip_ys = []
+        knee_angles = []
+        for f in landmarks_seq:
+            lh, rh = f.get(23), f.get(24)
+            lk, rk = f.get(25), f.get(26)
+            la, ra = f.get(27), f.get(28)
+            if lh and rh:
+                hip_ys.append((lh[1] + rh[1]) / 2.0)
+            if lh and lk and la:
+                ang = MovementProtocol.calculate_angle_2d(lh, lk, la)
+                knee_angles.append(ang)
+
+        # Check for vertical jump (hips rise above baseline, peak upward elevation)
+        if hip_ys:
+            start_hip_y = float(np.mean(hip_ys[:min(5, len(hip_ys))]))
+            min_hip_y = float(min(hip_ys))  # In MediaPipe Y, lower value = higher in frame
+            rise = start_hip_y - min_hip_y
+            if rise > 0.04:  # Significant upward elevation
+                return self.registry.get_protocol("jump")
+
+        # Check for deep squat (knees bend < 115 deg and hips descend)
+        if knee_angles:
+            min_knee = min(knee_angles)
+            if min_knee < 115.0:
+                return self.registry.get_protocol("squat")
+
+        # Sport-specific mapping from athlete profile context
+        if sport == "cricket":
+            return self.registry.get_protocol("cricket_batting")
+        elif sport == "football":
+            return self.registry.get_protocol("football_strike")
+        elif sport == "basketball":
+            return self.registry.get_protocol("basketball_jump_shot")
+        elif sport == "athletics":
+            return self.registry.get_protocol("sprint_mechanics")
+
+        # Universal foundational fallback
+        return self.registry.get_protocol("squat")
+
+    def analyze_video(
+        self,
+        video_path: str,
+        activity_or_protocol: Optional[str] = None,
+        athlete_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Activity-aware assessment entrypoint with automatic movement detection.
+
+        1. If protocol is specified, validates against registry.
+        2. If protocol is 'auto' or omitted, auto-detects from video kinematics & athlete context.
+        3. Validates video quality & landmark visibility via VideoQualityGate.
+        4. Runs activity-specific analyzer.
+        5. Returns structured MovementAnalysisResult dictionary.
+        """
+        is_auto = not activity_or_protocol or str(activity_or_protocol).lower() in ("auto", "none", "", "detect")
         protocol = None
-        if activity_or_protocol:
+        if not is_auto:
             protocol = self.registry.get_protocol(activity_or_protocol)
-
-        # If no explicit protocol given, infer from athlete context sport/role if appropriate
-        if not protocol and athlete_context:
-            sport = athlete_context.get("sport", "").lower()
-            role = athlete_context.get("primary_role") or athlete_context.get("role", "")
-            if sport == "cricket" and "bat" in role.lower():
-                protocol = self.registry.get_protocol("cricket_batting")
-
-        if not protocol:
-            requested_name = activity_or_protocol or "unspecified activity"
-            supported = [p["protocol_id"] for p in self.registry.list_supported_protocols()]
-            return {
-                "status": "unsupported_activity",
-                "is_valid": False,
-                "error_code": "UNSUPPORTED_PROTOCOL",
-                "message": (
-                    f"Activity '{requested_name}' is not supported by any registered assessment protocol. "
-                    f"Supported protocols: {', '.join(supported)}."
-                ),
-                "movement_scores": {},
-                "movement_feedback": [
-                    f"Cannot evaluate '{requested_name}'. Sportify will not apply an incorrect analyzer (e.g. squat on batting)."
-                ],
-            }
 
         # Guard 2: MediaPipe computer vision engine availability
         if self.pose is None:
@@ -96,6 +142,10 @@ class PoseAnalyzer:
                 ],
             }
 
+        # If protocol was auto, resolve it now from extracted landmarks & athlete context
+        if is_auto or not protocol:
+            protocol = self._auto_detect_protocol(landmarks_seq, athlete_context=athlete_context)
+
         # Execute Activity-Specific Analyzer
         analysis_result: MovementAnalysisResult = protocol.analyze(
             landmarks_seq, fps=fps, athlete_context=athlete_context
@@ -120,7 +170,7 @@ class PoseAnalyzer:
                 "movement_feedback": analysis_result.observations,
             }
 
-        # Generate structured feedback
+        # Generate structured feedback without exact decimals
         feedback = self.format_movement_feedback(analysis_result)
 
         return {
@@ -128,8 +178,8 @@ class PoseAnalyzer:
             "is_valid": True,
             "protocol_id": protocol.protocol_id,
             "protocol_name": protocol.name,
-            "overall_movement_quality": analysis_result.overall_movement_quality,
-            "movement_scores": analysis_result.metrics,
+            "overall_movement_quality": round(analysis_result.overall_movement_quality),
+            "movement_scores": {k: round(v) for k, v in analysis_result.metrics.items()},
             "metric_details": {
                 k: v.model_dump() for k, v in analysis_result.metric_details.items()
             },
@@ -143,13 +193,17 @@ class PoseAnalyzer:
     ) -> List[str]:
         feedback = []
         for key, obs in analysis_result.metric_details.items():
-            score = obs.score
+            score = round(obs.score)
             icon = "✅" if score >= 80 else "📈" if score >= 65 else "⚠️"
-            raw_str = (
-                f" ({obs.raw_value} {obs.unit})" if obs.raw_value is not None else ""
-            )
+            if obs.raw_value is not None:
+                if isinstance(obs.raw_value, float):
+                    raw_str = f" (~{round(obs.raw_value)} {obs.unit})"
+                else:
+                    raw_str = f" ({obs.raw_value} {obs.unit})"
+            else:
+                raw_str = ""
             feedback.append(
-                f"{icon} {obs.name} [{score:.0f}/100]{raw_str}: {obs.interpretation}"
+                f"{icon} {obs.name} [{score}/100]{raw_str}: {obs.interpretation}"
             )
         return feedback
 
@@ -160,9 +214,11 @@ class PoseAnalyzer:
         movement_scores: Dict[str, float],
         protocol_name: Optional[str] = None,
         metric_details: Optional[Dict[str, Any]] = None,
+        athlete_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Generate grounded coaching advice strictly based on verified assessment observations.
+        Generate grounded coaching advice strictly based on verified assessment observations
+        and athlete-reported personalization context.
         """
         if not movement_scores:
             return {
@@ -186,34 +242,61 @@ class PoseAnalyzer:
                 ]
             )
 
-        prompt = f"""You are an elite sports biomechanics coach. Provide concise, direct, practical coaching grounded strictly in the verified movement observations below:
+        athlete_section = ""
+        if athlete_context:
+            playstyle = athlete_context.get("primary_playstyle") or athlete_context.get("playstyle")
+            tendencies = athlete_context.get("secondary_tendencies") or []
+            tendencies_str = ", ".join(tendencies) if isinstance(tendencies, list) else str(tendencies)
+            equipment = athlete_context.get("equipment_access") or []
+            equipment_str = ", ".join(equipment) if isinstance(equipment, list) else str(equipment)
+            surface = athlete_context.get("surface_preference")
+            dom_hand = athlete_context.get("dominant_hand")
+            dom_foot = athlete_context.get("dominant_foot")
+            desc = athlete_context.get("athlete_description")
+            personal_goals = athlete_context.get("personal_goals_text")
 
-Sport: {sport.title()} | Role: {role.replace('_', ' ').title()}
+            athlete_section = f"""
+ATHLETE PROFILE (Structured Selections):
+- Sport: {sport.title()} | Role: {role.replace('_', ' ').title()}
+- Primary Playstyle: {playstyle or 'Unspecified'}
+- Secondary Tendencies: {tendencies_str or 'None specified'}
+- Dominant Side: Hand: {dom_hand or 'N/A'}, Foot: {dom_foot or 'N/A'}
+- Surface & Equipment: Surface: {surface or 'Standard'}, Equipment: {equipment_str or 'Standard'}
+
+ATHLETE-REPORTED CONTEXT (Unstructured Athlete Voice):
+- Athlete's Description of Their Game: "{desc or 'None provided'}"
+- Specific Goals / Weaknesses They Want to Fix: "{personal_goals or 'None provided'}"
+"""
+
+        prompt = f"""You are an elite sports biomechanics coach. Provide concise, direct, practical coaching by combining the athlete's reported context with the verified movement measurements below:
+
+{athlete_section if athlete_section else f"Sport: {sport.title()} | Role: {role.replace('_', ' ').title()}"}
 Assessment Protocol: {protocol_name or 'Movement Assessment'}
 
-Verified Biomechanical Observations:
+VERIFIED BIOMECHANICAL MEASUREMENTS (Measured Vision Data):
 {obs_summary or scores_summary}
 
 Movement Scores:
 {scores_summary}
 
-Rules:
-- Strictly evaluate observable movement mechanics (balance, posture, kinetic chain sequencing, joint angles, base stability, follow-through).
-- Do NOT guess, classify, or make confident claims about specific play or shot names (e.g., do not claim 'this was a cover drive', 'this was a penalty kick', etc.). Keep the analysis focused on physical execution quality.
-- Do NOT use excessive wording, filler, or over-hedged disclaimers. Deliver crisp, actionable cues the athlete can immediately apply.
-- Return ONLY valid JSON (no markdown):
+STRICT COACHING RULES:
+1. ONLY reference a specific metric, angle, phase, score, or finding if that exact information is present in the VERIFIED BIOMECHANICAL MEASUREMENTS above. NEVER invent, assume, or fabricate numerical measurements or unmeasured physical faults.
+2. The athlete's reported description and goals represent qualitative self-perception. If the athlete reports a concern that is NOT measured or observed in the data, acknowledge it as an athlete-reported concern without falsely confirming or disproving it.
+3. Tailor your actionable technique tips, strategy, and corrective drills to the athlete's playstyle, tendencies, and reported equipment constraints.
+4. Do NOT use excessive wording, filler, or over-hedged disclaimers. Deliver crisp, authoritative, practical cues the athlete can immediately apply.
+5. Return ONLY valid JSON (no markdown):
 {{
   "overall_assessment": "2-3 sentence grounded summary of physical execution and movement quality",
   "strengths": ["grounded strength 1", "grounded strength 2"],
   "technique_tips": [
-    {{"title": "title", "detail": "actionable cue addressing observed metric", "priority": "high"}},
+    {{"title": "title", "detail": "actionable cue addressing observed metric and athlete context", "priority": "high"}},
     {{"title": "title", "detail": "actionable cue", "priority": "medium"}}
   ],
   "strategy_tips": [
-    {{"title": "title", "detail": "practical application for {role} in {sport}"}}
+    {{"title": "title", "detail": "practical application for {role} in {sport} matching athlete's playstyle"}}
   ],
   "drills": [
-    {{"name": "drill name", "description": "exact drill instructions addressing top weakness", "reps": "sets x reps"}}
+    {{"name": "drill name", "description": "exact drill instructions using athlete's available equipment", "reps": "sets x reps"}}
   ]
 }}"""
 
@@ -223,7 +306,7 @@ Rules:
                 prompt=prompt,
                 system_instruction=(
                     "You are an elite sports biomechanics coach. Respond ONLY with valid JSON grounded strictly in observed metrics. "
-                    "Do not assert unverified specific play names; focus purely on physical mechanics, kinetic chain sequencing, and execution quality."
+                    "Do not assert unverified specific play names or unmeasured angles; focus purely on physical mechanics, kinetic chain sequencing, and execution quality."
                 ),
                 temperature=0.2,
             )

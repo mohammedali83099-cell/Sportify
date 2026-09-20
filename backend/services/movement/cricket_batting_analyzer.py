@@ -142,44 +142,43 @@ class CricketBattingAnalyzer(MovementProtocol):
                 + balance_score * 0.35
                 + elbow_score * 0.20
                 + swing_flow_score * 0.15
-            ),
-            1,
+            )
         )
 
         metrics = {
-            "balance": round(float(balance_score), 1),
-            "upper_body_posture": round(float(elbow_score), 1),
-            "knee_stability": round(float(knee_score), 1),
-            "explosive_capacity": round(float(swing_flow_score), 1),
-            "movement_symmetry": round(float(min(90.0, (knee_score + balance_score) / 2)), 1),
-            "hip_mobility": round(float(min(92.0, knee_score * 0.95)), 1),
+            "balance": round(float(balance_score)),
+            "upper_body_posture": round(float(elbow_score)),
+            "knee_stability": round(float(knee_score)),
+            "explosive_capacity": round(float(swing_flow_score)),
+            "movement_symmetry": round(float(min(90.0, (knee_score + balance_score) / 2))),
+            "hip_mobility": round(float(min(92.0, knee_score * 0.95))),
         }
 
         metric_details = {
             "front_knee_brace": MetricObservation(
                 name="Front Knee Stride Angle",
-                score=round(float(knee_score), 1),
-                raw_value=round(contact_lead_knee, 1),
+                score=round(float(knee_score)),
+                raw_value=round(contact_lead_knee),
                 unit="degrees",
                 interpretation=knee_interp,
             ),
             "head_over_ball": MetricObservation(
                 name="Head-Over-Knee Alignment",
-                score=round(float(balance_score), 1),
-                raw_value=round(contact_head_diff, 3),
+                score=round(float(balance_score)),
+                raw_value=round(contact_head_diff, 2),
                 unit="offset index",
                 interpretation=balance_interp,
             ),
             "lead_elbow_elevation": MetricObservation(
                 name="Lead Elbow Guidance",
-                score=round(float(elbow_score), 1),
-                raw_value=round(contact_elbow, 1),
+                score=round(float(elbow_score)),
+                raw_value=round(contact_elbow),
                 unit="degrees",
                 interpretation=elbow_interp,
             ),
             "swing_flow": MetricObservation(
                 name="Downswing Speed & Flow",
-                score=round(float(swing_flow_score), 1),
+                score=round(float(swing_flow_score)),
                 raw_value=round(max_wrist_vel, 2),
                 unit="velocity index",
                 interpretation="Fluid downward acceleration through impact zone.",
@@ -187,7 +186,7 @@ class CricketBattingAnalyzer(MovementProtocol):
         }
 
         observations = [
-            f"Stroke impact detected at frame {contact_idx} with wrist velocity index {round(max_wrist_vel, 2)}.",
+            f"Stroke impact detected with controlled wrist velocity through the hitting zone.",
             knee_interp,
             balance_interp,
             elbow_interp,
@@ -203,8 +202,8 @@ class CricketBattingAnalyzer(MovementProtocol):
             metric_details=metric_details,
             phase_breakdown={
                 "contact_frame": contact_idx,
-                "lead_knee_angle": round(contact_lead_knee, 1),
-                "elbow_angle": round(contact_elbow, 1),
+                "lead_knee_angle": round(contact_lead_knee),
+                "elbow_angle": round(contact_elbow),
             },
             observations=observations,
         )

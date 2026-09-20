@@ -108,13 +108,13 @@ class FootballStrikeAnalyzer(MovementProtocol):
             plant_interp = f"Optimal plant knee flexion ({plant_knee_at_impact:.1f}°) providing stable base and joint protection."
         elif 120.0 <= plant_knee_at_impact < 130.0:
             plant_score = 75.0
-            plant_interp = f"Moderate plant knee compression ({plant_knee_at_impact:.1f}°). Strengthen quadriceps and decelerators."
+            plant_interp = f"Moderate plant knee compression (~{round(plant_knee_at_impact)}°). Strengthen quadriceps and decelerators."
         elif plant_knee_at_impact > 165.0:
             plant_score = 55.0
-            plant_interp = f"Plant knee hyperextended or locked ({plant_knee_at_impact:.1f}°), risking joint shear and reducing strike power."
+            plant_interp = f"Plant knee hyperextended or locked (~{round(plant_knee_at_impact)}°), risking joint shear."
         else:
             plant_score = 65.0
-            plant_interp = f"Suboptimal plant knee angle ({plant_knee_at_impact:.1f}°)."
+            plant_interp = f"Suboptimal plant knee angle (~{round(plant_knee_at_impact)}°)."
 
         # 2. Explosive Capacity / Strike Whip Velocity
         if peak_velocity >= 0.85:
@@ -131,29 +131,29 @@ class FootballStrikeAnalyzer(MovementProtocol):
         impact_torso_lean = torso_angles[impact_idx]
         if 5.0 <= impact_torso_lean <= 20.0:
             posture_score = 90.0
-            posture_interp = f"Excellent forward-over-ball trunk control ({impact_torso_lean:.1f}° lean)."
+            posture_interp = f"Excellent forward-over-ball trunk control (~{round(impact_torso_lean)}° lean)."
         elif impact_torso_lean < 5.0:
             posture_score = 75.0
-            posture_interp = f"Upright torso ({impact_torso_lean:.1f}°). Risk of sending ball over target."
+            posture_interp = f"Upright torso (~{round(impact_torso_lean)}°). Risk of sending ball over target."
         elif impact_torso_lean <= 30.0:
             posture_score = 70.0
-            posture_interp = f"Slight excessive lean ({impact_torso_lean:.1f}°). Maintain core stiffness."
+            posture_interp = f"Slight excessive lean (~{round(impact_torso_lean)}°). Maintain core stiffness."
         else:
             posture_score = 52.0
-            posture_interp = f"Severe torso collapse ({impact_torso_lean:.1f}°). Core stability required."
+            posture_interp = f"Severe torso collapse (~{round(impact_torso_lean)}°). Core stability required."
 
         # 4. Hip Mobility / Strike Leg Extension Range
         min_strike_knee = min(strike_knee_angles[:impact_idx+1]) if impact_idx > 0 else strike_knee_angles[0]
         flexion_range = max(strike_knee_angles) - min_strike_knee
         if flexion_range >= 70.0:
             hip_mobility_score = 88.0
-            hip_interp = f"Broad hip-knee dynamic excursion ({flexion_range:.1f}° range) enabling full elastic whip."
+            hip_interp = f"Broad hip-knee dynamic excursion (~{round(flexion_range)}° range) enabling full elastic whip."
         elif flexion_range >= 50.0:
             hip_mobility_score = 74.0
-            hip_interp = f"Moderate dynamic range ({flexion_range:.1f}°). Target posterior chain mobility."
+            hip_interp = f"Moderate dynamic range (~{round(flexion_range)}°). Target posterior chain mobility."
         else:
             hip_mobility_score = 58.0
-            hip_interp = f"Constrained striking leg swing arc ({flexion_range:.1f}°). Hip mobility deficit."
+            hip_interp = f"Constrained striking leg swing arc (~{round(flexion_range)}°). Hip mobility deficit."
 
         # 5. Balance / Post-Strike Deceleration
         post_frames = landmarks_sequence[impact_idx:min(len(landmarks_sequence), impact_idx + 15)]
@@ -174,57 +174,56 @@ class FootballStrikeAnalyzer(MovementProtocol):
                 + posture_score * 0.20
                 + hip_mobility_score * 0.15
                 + balance_score * 0.10
-            ),
-            1,
+            )
         )
 
         metrics = {
-            "knee_stability": round(plant_score, 1),
-            "explosive_capacity": round(explosive_score, 1),
-            "upper_body_posture": round(posture_score, 1),
-            "hip_mobility": round(hip_mobility_score, 1),
-            "balance": round(balance_score, 1),
+            "knee_stability": round(plant_score),
+            "explosive_capacity": round(explosive_score),
+            "upper_body_posture": round(posture_score),
+            "hip_mobility": round(hip_mobility_score),
+            "balance": round(balance_score),
         }
 
         metric_details = {
             "knee_stability": MetricObservation(
                 name="Plant Knee Stability",
-                score=round(plant_score, 1),
-                raw_value=round(plant_knee_at_impact, 1),
+                score=round(plant_score),
+                raw_value=round(plant_knee_at_impact),
                 unit="deg",
                 interpretation=plant_interp,
             ),
             "explosive_capacity": MetricObservation(
                 name="Strike Whip Velocity",
-                score=round(explosive_score, 1),
+                score=round(explosive_score),
                 raw_value=round(peak_velocity, 2),
                 unit="speed",
                 interpretation=explosive_interp,
             ),
             "upper_body_posture": MetricObservation(
                 name="Trunk Over Ball Posture",
-                score=round(posture_score, 1),
-                raw_value=round(impact_torso_lean, 1),
+                score=round(posture_score),
+                raw_value=round(impact_torso_lean),
                 unit="deg",
                 interpretation=posture_interp,
             ),
             "hip_mobility": MetricObservation(
                 name="Dynamic Swing Arc",
-                score=round(hip_mobility_score, 1),
-                raw_value=round(flexion_range, 1),
+                score=round(hip_mobility_score),
+                raw_value=round(flexion_range),
                 unit="deg",
                 interpretation=hip_interp,
             ),
             "balance": MetricObservation(
                 name="Post-Strike Deceleration",
-                score=round(balance_score, 1),
+                score=round(balance_score),
                 interpretation=balance_interp,
             ),
         }
 
         foot_side_str = "Right" if right_footed else "Left"
         observations = [
-            f"{foot_side_str}-Footed Strike analyzed at {fps:.0f} FPS across dynamic execution phases.",
+            f"{foot_side_str}-Footed Strike execution analyzed across dynamic execution phases.",
             plant_interp,
             explosive_interp,
             posture_interp,

@@ -93,7 +93,7 @@ class SquatAnalyzer(MovementProtocol):
             np.percentile(avg_knee_angles, 90)
         )  # Near start/end
 
-        # Verify a real squat cycle occurred (at least 35 degrees of knee flexion change)
+        # Verify a real squat cycle occurred (at least 30 degrees of knee flexion change)
         knee_rom = standing_knee_angle - min_knee_angle
         if knee_rom < 30.0:
             return MovementAnalysisResult(
@@ -102,14 +102,13 @@ class SquatAnalyzer(MovementProtocol):
                 status="failed",
                 is_valid=False,
                 observations=[
-                    f"Squat movement could not be validated: insufficient knee flexion observed ({round(knee_rom, 1)}° ROM). "
+                    f"Squat movement could not be validated: insufficient knee flexion observed (~{round(knee_rom)}° ROM). "
                     "Ensure athlete performs full descent and ascent in frame."
                 ],
                 error_details={"error_code": "INSUFFICIENT_RANGE_OF_MOTION"},
             )
 
         # ── 1. Squat Depth Score ───────────────────────────────────────────────
-        # Ideal depth: knee angle <= 85° (below parallel) -> 95-100; 90° -> 85; 100° -> 70; >120° -> <50
         if min_knee_angle <= 80:
             depth_score = 95.0
         elif min_knee_angle <= 90:
@@ -128,12 +127,10 @@ class SquatAnalyzer(MovementProtocol):
         )
 
         # ── 2. Knee Stability & Valgus Control ──────────────────────────────────
-        # Compare knee width at bottom inflection vs standing baseline ankle width
         baseline_ankle_w = np.median(ankle_widths) + 1e-6
         inflection_knee_w = knee_widths[min_knee_idx]
         valgus_ratio = inflection_knee_w / baseline_ankle_w
 
-        # If knee width collapses significantly narrower than ankle width -> valgus collapse
         if valgus_ratio >= 0.95:
             valgus_score = min(95.0, 80.0 + valgus_ratio * 15.0)
             valgus_interp = "Excellent knee tracking; knees stayed stacked over ankles without inward collapse."
@@ -145,7 +142,6 @@ class SquatAnalyzer(MovementProtocol):
             valgus_interp = "Significant knee valgus (medial collapse) detected during maximum depth phase."
 
         # ── 3. Torso Posture & Hinge Balance ────────────────────────────────────
-        # At bottom inflection, reasonable forward lean is 20°-40°
         inflection_torso = torso_angles[min_knee_idx]
         if inflection_torso <= 35.0:
             posture_score = 90.0 - abs(inflection_torso - 25.0) * 0.8
@@ -167,10 +163,10 @@ class SquatAnalyzer(MovementProtocol):
             sym_interp = "Highly symmetrical bilateral load distribution at depth."
         elif side_diff <= 12.0:
             sym_score = 80.0 - (side_diff - 5.0) * 2.0
-            sym_interp = f"Minor bilateral asymmetry ({round(side_diff, 1)}° difference between knees)."
+            sym_interp = f"Minor bilateral asymmetry (~{round(side_diff)}° difference between knees)."
         else:
             sym_score = max(40.0, 65.0 - (side_diff - 12.0) * 2.0)
-            sym_interp = f"Notable side-to-side shift ({round(side_diff, 1)}° asymmetry) favoring one leg."
+            sym_interp = f"Notable side-to-side shift (~{round(side_diff)}° asymmetry) favoring one leg."
 
         # ── 5. Hip Mobility ────────────────────────────────────────────────────
         min_hip_angle = min(
@@ -194,59 +190,58 @@ class SquatAnalyzer(MovementProtocol):
                 + posture_score * 0.20
                 + sym_score * 0.15
                 + hip_score * 0.10
-            ),
-            1,
+            )
         )
 
         metrics = {
-            "knee_stability": round(float(valgus_score), 1),
-            "hip_mobility": round(float(hip_score), 1),
-            "upper_body_posture": round(float(posture_score), 1),
-            "movement_symmetry": round(float(sym_score), 1),
-            "explosive_capacity": round(float(min(100.0, depth_score * 0.9)), 1),
-            "balance": round(float((sym_score + posture_score) / 2), 1),
+            "knee_stability": round(float(valgus_score)),
+            "hip_mobility": round(float(hip_score)),
+            "upper_body_posture": round(float(posture_score)),
+            "movement_symmetry": round(float(sym_score)),
+            "explosive_capacity": round(float(min(100.0, depth_score * 0.9))),
+            "balance": round(float((sym_score + posture_score) / 2)),
         }
 
         metric_details = {
             "squat_depth": MetricObservation(
                 name="Squat Depth",
-                score=round(float(depth_score), 1),
-                raw_value=round(min_knee_angle, 1),
+                score=round(float(depth_score)),
+                raw_value=round(min_knee_angle),
                 unit="degrees (knee flexion)",
                 interpretation=depth_interp,
             ),
             "knee_stability": MetricObservation(
                 name="Knee Valgus & Tracking Stability",
-                score=round(float(valgus_score), 1),
+                score=round(float(valgus_score)),
                 raw_value=round(valgus_ratio, 2),
                 unit="knee-to-ankle ratio",
                 interpretation=valgus_interp,
             ),
             "upper_body_posture": MetricObservation(
                 name="Torso Inclination Balance",
-                score=round(float(posture_score), 1),
-                raw_value=round(inflection_torso, 1),
+                score=round(float(posture_score)),
+                raw_value=round(inflection_torso),
                 unit="degrees from vertical",
                 interpretation=posture_interp,
             ),
             "movement_symmetry": MetricObservation(
                 name="Bilateral Knee Symmetry",
-                score=round(float(sym_score), 1),
-                raw_value=round(side_diff, 1),
+                score=round(float(sym_score)),
+                raw_value=round(side_diff),
                 unit="degrees difference",
                 interpretation=sym_interp,
             ),
             "hip_mobility": MetricObservation(
                 name="Deep Hip Flexion Range",
-                score=round(float(hip_score), 1),
-                raw_value=round(min_hip_angle, 1),
+                score=round(float(hip_score)),
+                raw_value=round(min_hip_angle),
                 unit="degrees (hip flexion)",
                 interpretation=hip_interp,
             ),
         }
 
         observations = [
-            f"Squat minimum knee angle reached {round(min_knee_angle, 1)}° at frame {min_knee_idx}.",
+            f"Squat minimum knee angle reached ~{round(min_knee_angle)}° at frame {min_knee_idx}.",
             depth_interp,
             valgus_interp,
             posture_interp,
@@ -257,8 +252,8 @@ class SquatAnalyzer(MovementProtocol):
             "descent_frames": int(min_knee_idx),
             "inflection_frame": int(min_knee_idx),
             "ascent_frames": int(len(landmarks_sequence) - min_knee_idx),
-            "min_knee_angle": round(min_knee_angle, 1),
-            "standing_knee_angle": round(standing_knee_angle, 1),
+            "min_knee_angle": round(min_knee_angle),
+            "standing_knee_angle": round(standing_knee_angle),
         }
 
         return MovementAnalysisResult(

@@ -189,7 +189,7 @@ export default function Analysis() {
             </h1>
             <p className="text-xs text-slate-400 font-sans mt-0.5">
               Assessment completed on {completedDate} • Movement Quality:{' '}
-              <strong className="text-white font-mono">{overallQuality.toFixed(0)}/100</strong>
+              <strong className="text-white font-mono">{Math.round(overallQuality)}/100</strong>
             </p>
           </div>
 
@@ -438,7 +438,15 @@ export default function Analysis() {
                       {key.replace(/_/g, ' ')}
                     </span>
                     <span className="text-xs font-mono font-bold text-slate-200">
-                      {typeof value === 'number' ? value.toFixed(1) : String(value)}
+                      {typeof value === 'number'
+                        ? `~${Math.round(value)}`
+                        : typeof value === 'object' && value !== null
+                        ? (value as any).raw_value !== undefined
+                          ? typeof (value as any).raw_value === 'number'
+                            ? `~${Math.round((value as any).raw_value)} ${(value as any).unit || ''}`
+                            : String((value as any).raw_value)
+                          : `${Math.round((value as any).score || 0)}/100`
+                        : String(value)}
                     </span>
                   </div>
                 ))}
