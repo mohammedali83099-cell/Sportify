@@ -40,9 +40,54 @@ class GeminiService:
         api_key: str,
     ) -> Optional[Dict[str, Any]]:
         """
-        Attempts generation via google.genai SDK first, then direct REST API.
+        Attempts generation via direct REST API first (fastest, zero SDK sleep on 429),
+        then falls back to SDK if REST fails with non-quota errors.
         """
-        # 1. Primary: Official google.genai SDK
+        # 1. Primary: Direct REST API via httpx (fast, explicit timeout, no automatic retry delays)
+        try:
+            import httpx
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent?key={api_key}"
+
+            payload = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt}],
+                    }
+                ],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "temperature": temperature,
+                },
+            }
+            if system_instruction:
+                payload["systemInstruction"] = {
+                    "parts": [{"text": system_instruction}]
+                }
+
+            with httpx.Client(timeout=4.0) as http_client:
+                resp = http_client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            raw = parts[0].get("text", "").strip()
+                            raw = re.sub(r"^```(?:json)?", "", raw, flags=re.MULTILINE).strip()
+                            raw = re.sub(r"```$", "", raw, flags=re.MULTILINE).strip()
+                            m = re.search(r"\{.*\}", raw, re.DOTALL)
+                            if m:
+                                return json.loads(m.group())
+                elif resp.status_code == 429:
+                    logger.info("Gemini quota exhausted (429). Fast-failing immediately to deterministic role baseline.")
+                    return "QUOTA_EXHAUSTED"
+                else:
+                    logger.warning(f"Gemini REST error {resp.status_code} for {target_model}: {resp.text}")
+        except Exception as e:
+            logger.warning(f"Gemini REST call failed for {target_model}: {e}")
+
+        # 2. Secondary: Official google.genai SDK
         try:
             from google.genai import types
             client = self._get_client()
@@ -67,48 +112,10 @@ class GeminiService:
                     if m:
                         return json.loads(m.group())
         except Exception as e:
-            logger.warning(f"google.genai SDK error for model {target_model}: {e}. Trying REST endpoint...")
-
-        # 2. Direct REST API via httpx
-        try:
-            import httpx
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent?key={api_key}"
-
-            payload = {
-                "contents": [
-                    {
-                        "role": "user",
-                        "parts": [{"text": prompt}],
-                    }
-                ],
-                "generationConfig": {
-                    "responseMimeType": "application/json",
-                    "temperature": temperature,
-                },
-            }
-            if system_instruction:
-                payload["systemInstruction"] = {
-                    "parts": [{"text": system_instruction}]
-                }
-
-            with httpx.Client(timeout=30.0) as http_client:
-                resp = http_client.post(url, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts:
-                            raw = parts[0].get("text", "").strip()
-                            raw = re.sub(r"^```(?:json)?", "", raw, flags=re.MULTILINE).strip()
-                            raw = re.sub(r"```$", "", raw, flags=re.MULTILINE).strip()
-                            m = re.search(r"\{.*\}", raw, re.DOTALL)
-                            if m:
-                                return json.loads(m.group())
-                else:
-                    logger.warning(f"Gemini REST error {resp.status_code} for {target_model}: {resp.text}")
-        except Exception as e:
-            logger.warning(f"Gemini REST call failed for {target_model}: {e}")
+            err_str = str(e)
+            logger.warning(f"google.genai SDK error for model {target_model}: {e}")
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                return "QUOTA_EXHAUSTED"
 
         return None
 
@@ -121,8 +128,7 @@ class GeminiService:
     ) -> Optional[Dict[str, Any]]:
         """
         Generate structured JSON response using Gemini API.
-        Tries primary model (gemini-3.6-flash), falls back to secondary model (gemini-2.0-flash).
-        Returns parsed dict or None if calls fail.
+        Fast-fails to deterministic baseline if quota is exhausted or API is unavailable.
         """
         api_key = settings.GEMINI_API_KEY
         if not api_key or api_key == "your_gemini_api_key_here":
@@ -130,7 +136,7 @@ class GeminiService:
             return None
 
         primary_model = model or settings.GEMINI_MODEL or "gemini-3.6-flash"
-        fallback_model = getattr(settings, "GEMINI_FALLBACK_MODEL", "gemini-2.0-flash")
+        fallback_model = getattr(settings, "GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
 
         # Build candidate list with primary first, then fallback
         candidate_models = []
@@ -147,14 +153,18 @@ class GeminiService:
                     temperature=temperature,
                     api_key=api_key,
                 )
-                if result is not None:
+                if result == "QUOTA_EXHAUSTED":
+                    # Project quota exhausted across all models; return immediately without waiting
+                    break
+                if result is not None and isinstance(result, dict):
                     return result
-                logger.info(f"Model {candidate} did not return valid result. Trying next candidate...")
             except Exception as e:
                 logger.warning(f"Error invoking candidate model {candidate}: {e}")
 
-        logger.warning("All Gemini candidate models failed or returned empty. Using deterministic fallback.")
+        logger.info("Gemini generation skipped/failed. Using deterministic role baseline.")
         return None
+
+
 
 
 gemini_service = GeminiService()

@@ -41,16 +41,21 @@ export interface PlanSessionItem {
   session_name: string;
   type?: string;
   duration_minutes?: number;
+  target_rpe?: string;
   warmup?: string[];
   main_exercises?: PlanExerciseItem[];
+  finisher?: string[];
   cooldown?: string[];
 }
 
 export interface PlanWeekItem {
   week_number: number;
   week_theme?: string;
+  target_rpe?: string;
+  focus_summary?: string;
   sessions?: PlanSessionItem[];
 }
+
 
 export interface TrainingPlanData {
   plan_title?: string;

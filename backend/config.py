@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Gemini API configuration
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.6-flash"
-    GEMINI_FALLBACK_MODEL: str = "gemini-2.0-flash"
+    GEMINI_FALLBACK_MODEL: str = "gemini-2.5-flash"
 
     # Resend Email API
     RESEND_API_KEY: str = ""

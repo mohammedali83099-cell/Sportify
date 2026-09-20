@@ -128,22 +128,53 @@ export default function TrainingPlan() {
     return firstSentence.endsWith('.') ? firstSentence : `${firstSentence}.`;
   };
 
+  if (!planData || weeks.length === 0) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center space-y-4 select-none">
+        <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-sky-400">
+          <ZapIcon className="w-6 h-6" />
+        </div>
+        <div className="space-y-1 max-w-md">
+          <h2 className="text-base font-bold font-heading text-white">
+            No Training Pathway Generated Yet
+          </h2>
+          <p className="text-xs text-slate-400 font-sans leading-relaxed">
+            Generate your calibrated 4-week periodized training pathway based on your movement assessment and athletic profile.
+          </p>
+        </div>
+        <button
+          onClick={handleGeneratePlan}
+          disabled={generating}
+          className="btn-primary text-xs px-6 py-2.5 flex items-center gap-2"
+        >
+          <ZapIcon className="w-4 h-4 text-slate-950" />
+          <span>{generating ? 'Generating Pathway...' : 'Generate 4-Week Pathway'}</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 select-none pb-8">
       {/* ── 1. TOP HERO: WORKOUT CONTEXT & DISCREET REGENERATE ────────────────── */}
       <section className="rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] backdrop-blur-md border border-white/[0.08] p-5 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <span className="text-[11px] font-sans font-medium text-slate-300 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10">
                 4-Week Training Pathway
               </span>
+              {planData?.role_focus && (
+                <span className="text-[11px] font-semibold font-sans text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                  {planData.role_focus} Baseline
+                </span>
+              )}
               <span className="text-xs font-mono text-slate-400">
                 Week {selectedWeek} of {weeks.length || 4}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-tight">
-              {planData?.plan_title || 'Personalized Training Pathway'}
+              {planData?.plan_title || 'Role-Specific Baseline Training Plan'}
             </h1>
             <p className="text-xs text-slate-400 mt-1 font-sans max-w-xl">
               {formatConciseSummary(planData?.plan_summary)}
@@ -154,11 +185,11 @@ export default function TrainingPlan() {
           <button
             onClick={handleGeneratePlan}
             disabled={generating}
-            className="btn-ghost text-xs flex items-center gap-1.5 px-3 py-1.5 shrink-0 border border-white/10"
+            className="btn-ghost text-xs flex items-center gap-1.5 px-3 py-1.5 shrink-0 border border-white/10 hover:border-emerald-500/40 hover:text-emerald-300 transition-all"
             title="Regenerate Plan"
           >
             <ZapIcon className="w-3.5 h-3.5 text-slate-400" />
-            <span>Regenerate Plan</span>
+            <span>{generating ? 'Regenerating...' : 'Regenerate Plan'}</span>
           </button>
         </div>
 
@@ -181,7 +212,7 @@ export default function TrainingPlan() {
                   Week {wk.week_number}
                 </div>
                 <div className="text-[10px] font-mono opacity-70">
-                  {wk.sessions?.length || 0} sess
+                  {wk.target_rpe ? `RPE ${wk.target_rpe}` : `${wk.sessions?.length || 0} sess`}
                 </div>
               </button>
             );
@@ -191,10 +222,15 @@ export default function TrainingPlan() {
 
       {/* ── 3. WEEK SESSIONS WORKFLOW ────────────────────────────────────────── */}
       <section className="space-y-3">
-        <div className="px-0.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 px-0.5">
           <h2 className="text-sm font-bold font-heading text-white">
             {currentWeekData?.week_theme || `Week ${selectedWeek} Sessions`}
           </h2>
+          {currentWeekData?.target_rpe && (
+            <span className="text-[11px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 w-fit">
+              Target Intensity: RPE {currentWeekData.target_rpe}
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-start">
@@ -213,11 +249,18 @@ export default function TrainingPlan() {
                     <h3 className="text-sm font-bold text-white font-heading truncate">
                       {session.session_name}
                     </h3>
-                    {session.type && (
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block">
-                        {session.type}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {session.type && (
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                          {session.type}
+                        </span>
+                      )}
+                      {session.target_rpe && (
+                        <span className="text-[10px] font-mono text-slate-500">
+                          • RPE {session.target_rpe}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -231,7 +274,7 @@ export default function TrainingPlan() {
               {session.warmup && session.warmup.length > 0 && (
                 <div className="border-l-2 border-white/20 pl-3 py-0.5 space-y-0.5">
                   <span className="text-[10px] font-sans font-semibold text-slate-400 uppercase tracking-wider block">
-                    Warm-Up
+                    Block A: Dynamic Warm-Up & Role Prep
                   </span>
                   <p className="text-xs text-slate-300 font-sans leading-relaxed">
                     {session.warmup.join(' • ')}
@@ -242,7 +285,7 @@ export default function TrainingPlan() {
               {/* Scannable Exercises */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-sans font-semibold text-slate-400 uppercase tracking-wider block">
-                  Exercises ({session.main_exercises?.length || 0})
+                  Blocks B–D: Role Power, Strength & Prehab ({session.main_exercises?.length || 0})
                 </span>
 
                 <div className="divide-y divide-white/[0.05] rounded-xl bg-white/[0.015] border border-white/[0.04] px-3.5 py-0.5">
@@ -279,11 +322,23 @@ export default function TrainingPlan() {
                 </div>
               </div>
 
+              {/* Block E: Conditioning Finisher (if present) */}
+              {session.finisher && session.finisher.length > 0 && (
+                <div className="border-l-2 border-amber-500/40 pl-3 py-0.5 space-y-0.5">
+                  <span className="text-[10px] font-sans font-semibold text-amber-400 uppercase tracking-wider block">
+                    Block E: Role Conditioning Finisher
+                  </span>
+                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                    {session.finisher.join(' • ')}
+                  </p>
+                </div>
+              )}
+
               {/* Integrated Cool-Down (Concise scannable label) */}
               {session.cooldown && session.cooldown.length > 0 && (
                 <div className="border-l-2 border-emerald-500/40 pl-3 py-0.5 space-y-0.5">
                   <span className="text-[10px] font-sans font-semibold text-emerald-400 uppercase tracking-wider block">
-                    Cool-Down
+                    Cool-Down & Joint Flush
                   </span>
                   <p className="text-xs text-slate-300 font-sans leading-relaxed">
                     {session.cooldown.join(' • ')}
@@ -304,6 +359,7 @@ export default function TrainingPlan() {
           ))}
         </div>
       </section>
+
 
       {/* ── 4. LOG WORKOUT MODAL (Preserved 100% Functionally) ──────────────── */}
       {isLogModalOpen && (
