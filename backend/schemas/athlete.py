@@ -65,6 +65,20 @@ class AthleteProfileBase(BaseModel):
     age: int = 20
     weight_kg: int = 70
     height_cm: int = 175
+    
+    # Personalization & Identity
+    primary_playstyle: Optional[str] = None
+    secondary_tendencies: Optional[List[str]] = Field(default_factory=list)
+    playstyle_profile: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    dominant_hand: Optional[str] = None
+    dominant_foot: Optional[str] = None
+    stance: Optional[str] = None
+    surface_preference: Optional[str] = None
+    training_environment: Optional[str] = None
+    equipment_access: Optional[List[str]] = Field(default_factory=list)
+    athlete_description: Optional[str] = None
+    personal_goals_text: Optional[str] = None
+
     self_assessment_scores: Optional[Dict[str, float]] = None
 
 

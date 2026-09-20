@@ -93,10 +93,12 @@ class ExerciseService:
         experience_level: str = "intermediate",
         session_duration_minutes: int = 60,
         athlete_context: Optional[Dict[str, Any]] = None,
+        week_number: int = 1,
     ) -> Dict[str, Any]:
         """
         Constructs a structured session (warmup, main exercises, cooldown)
-        drawn strictly from the exercise library catalog.
+        drawn strictly from the exercise library catalog, dynamically periodized
+        across 4 progressive weeks.
         """
         target_attrs = [b.get("attribute") for b in primary_bottlenecks if b.get("attribute")]
         if not target_attrs:
@@ -105,28 +107,66 @@ class ExerciseService:
         # Number of main exercises based on session duration
         num_main = 4 if session_duration_minutes >= 60 else 3 if session_duration_minutes >= 45 else 2
 
+        # Periodization parameters based on week_number (1 to 4)
+        if week_number == 1:
+            # Phase 1: Foundation & Mechanics
+            def_sets = 3
+            def_reps = "10-12"
+            def_intensity = "Medium (RPE 6-7)"
+            def_rest = 90
+            week_cue_prefix = "Focus on controlled tempo & mechanics: "
+        elif week_number == 2:
+            # Phase 2: Load Accumulation & Capacity
+            def_sets = 4 if experience_level == "advanced" else 3
+            def_reps = "8-10"
+            def_intensity = "Medium-High (RPE 7-8)"
+            def_rest = 90
+            week_cue_prefix = "Sustain tension through full ROM: "
+        elif week_number == 3:
+            # Phase 3: Peak Intensity & Power
+            def_sets = 4
+            def_reps = "5-6"
+            def_intensity = "High / Peak (RPE 8-9)"
+            def_rest = 120
+            week_cue_prefix = "Maximal explosive intent on each rep: "
+        else:
+            # Phase 4: Deload, Consolidation & Re-Testing
+            def_sets = 2
+            def_reps = "6-8"
+            def_intensity = "Deload & Precision (RPE 5-6)"
+            def_rest = 60
+            week_cue_prefix = "Crisp technical execution & recovery: "
+
         main_exercises = []
         used_ids = set()
 
         # 1. Fill 60%+ of main exercises from primary development bottlenecks
+        # Use week-based rotation offset so each week gets distinct exercises
         for attr in target_attrs:
             matches = self.get_exercises_for_attribute(
                 attribute=attr,
                 difficulty=experience_level,
-                limit=2,
+                limit=8,
             )
-            for ex in matches:
+            if matches:
+                offset = (week_number - 1) % len(matches)
+                rotated_matches = matches[offset:] + matches[:offset]
+            else:
+                rotated_matches = matches
+
+            for ex in rotated_matches:
                 if ex["id"] not in used_ids and len(main_exercises) < num_main:
                     used_ids.add(ex["id"])
-                    cue = ex.get("coaching_cues", ["Maintain proper form"])[0]
+                    raw_cue = ex.get("coaching_cues", ["Maintain proper form"])[0]
+                    cue = f"{week_cue_prefix}{raw_cue}"
                     main_exercises.append(
                         {
                             "id": ex["id"],
                             "name": ex["name"],
-                            "sets": 3 if experience_level != "advanced" else 4,
-                            "reps": ex.get("sets_reps_default", "3x8-10").split("x")[-1] if "x" in ex.get("sets_reps_default", "") else "8-10",
-                            "intensity_level": "Medium" if experience_level == "beginner" else "High",
-                            "rest_seconds": ex.get("rest_default", 90),
+                            "sets": def_sets,
+                            "reps": def_reps,
+                            "intensity_level": def_intensity,
+                            "rest_seconds": def_rest,
                             "coaching_cue": cue,
                             "targets_bottleneck": attr,
                             "primary_muscles": ex.get("primary_muscles", []),
@@ -134,7 +174,7 @@ class ExerciseService:
                         }
                     )
 
-        # 2. If main exercises still has slots, fill from session type category
+        # 2. If main exercises still has slots, fill from session type category with rotation
         cat_map = {
             "Strength": "strength",
             "Speed": "speed",
@@ -145,19 +185,26 @@ class ExerciseService:
         }
         fallback_cat = cat_map.get(session_type, "strength")
         pool = self._by_category.get(fallback_cat, self._exercises)
-        for ex in pool:
+        if pool:
+            cat_offset = ((week_number - 1) * 2) % len(pool)
+            rotated_pool = pool[cat_offset:] + pool[:cat_offset]
+        else:
+            rotated_pool = []
+
+        for ex in rotated_pool:
             if ex["id"] not in used_ids and len(main_exercises) < num_main:
                 used_ids.add(ex["id"])
-                cue = ex.get("coaching_cues", ["Focus on control"])[0]
+                raw_cue = ex.get("coaching_cues", ["Focus on control"])[0]
+                cue = f"{week_cue_prefix}{raw_cue}"
                 target_attr = ex.get("targets_attributes", ["general"])[0]
                 main_exercises.append(
                     {
                         "id": ex["id"],
                         "name": ex["name"],
-                        "sets": 3,
-                        "reps": ex.get("sets_reps_default", "3x10").split("x")[-1] if "x" in ex.get("sets_reps_default", "") else "10",
-                        "intensity_level": "Medium",
-                        "rest_seconds": ex.get("rest_default", 60),
+                        "sets": def_sets,
+                        "reps": def_reps,
+                        "intensity_level": def_intensity,
+                        "rest_seconds": def_rest,
                         "coaching_cue": cue,
                         "targets_bottleneck": target_attr,
                         "primary_muscles": ex.get("primary_muscles", []),
@@ -165,22 +212,35 @@ class ExerciseService:
                     }
                 )
 
-        # 3. Dynamic warmups and cooldowns based on mobility catalog
+        # 3. Dynamic warmups and cooldowns rotating across weeks
         mobility_pool = self._by_category.get("mobility", [])
-        warmup_cues = [m["name"] + " (10-12 reps)" for m in mobility_pool[:3]] if mobility_pool else [
-            "5 min light dynamic jog",
-            "Leg swings (15 each side)",
-            "Hip circles (10 each side)",
-        ]
-        cooldown_cues = [m["name"] + " (60s hold)" for m in mobility_pool[3:5]] if len(mobility_pool) >= 5 else [
-            "Full body static stretching (5 min)",
-            "Deep diaphragmatic breathing (3 min)",
-        ]
+        if mobility_pool:
+            mob_len = len(mobility_pool)
+            w_start = ((week_number - 1) * 2) % mob_len
+            warmup_items = [
+                mobility_pool[(w_start + i) % mob_len]["name"] + " (10-12 reps)"
+                for i in range(min(3, mob_len))
+            ]
+            c_start = (w_start + 3) % mob_len
+            cooldown_items = [
+                mobility_pool[(c_start + i) % mob_len]["name"] + " (60s hold)"
+                for i in range(min(2, mob_len))
+            ]
+        else:
+            warmup_items = [
+                "5 min light dynamic jog",
+                "Leg swings (15 each side)",
+                "Hip circles (10 each side)",
+            ]
+            cooldown_items = [
+                "Full body static stretching (5 min)",
+                "Deep diaphragmatic breathing (3 min)",
+            ]
 
         return {
-            "warmup": warmup_cues,
+            "warmup": warmup_items,
             "main_exercises": main_exercises,
-            "cooldown": cooldown_cues,
+            "cooldown": cooldown_items,
         }
 
 

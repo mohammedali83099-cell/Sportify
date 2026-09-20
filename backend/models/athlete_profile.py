@@ -31,6 +31,19 @@ class AthleteProfile(Base):
     weight_kg = Column(Integer, default=70, nullable=False)
     height_cm = Column(Integer, default=175, nullable=False)
     
+    # Athlete Personalization & Identity
+    primary_playstyle = Column(String, nullable=True)
+    secondary_tendencies = Column(JSON, nullable=True)
+    playstyle_profile = Column(JSON, nullable=True)
+    dominant_hand = Column(String, nullable=True)
+    dominant_foot = Column(String, nullable=True)
+    stance = Column(String, nullable=True)
+    surface_preference = Column(String, nullable=True)
+    training_environment = Column(String, nullable=True)
+    equipment_access = Column(JSON, nullable=True)
+    athlete_description = Column(String, nullable=True)
+    personal_goals_text = Column(String, nullable=True)
+
     self_assessment_scores = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -55,5 +68,16 @@ class AthleteProfile(Base):
             "age": self.age,
             "weight_kg": self.weight_kg,
             "height_cm": self.height_cm,
+            "primary_playstyle": self.primary_playstyle,
+            "secondary_tendencies": self.secondary_tendencies or [],
+            "playstyle_profile": self.playstyle_profile or {},
+            "dominant_hand": self.dominant_hand,
+            "dominant_foot": self.dominant_foot,
+            "stance": self.stance,
+            "surface_preference": self.surface_preference,
+            "training_environment": self.training_environment,
+            "equipment_access": self.equipment_access or [],
+            "athlete_description": self.athlete_description,
+            "personal_goals_text": self.personal_goals_text,
             "self_assessment_scores": self.self_assessment_scores,
         }
