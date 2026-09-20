@@ -17,11 +17,11 @@ export const ROLE_ASSESSMENT_MATRIX = {
   cricket: {
     batsman: {
       roleTitle: 'Cricket Batsman',
-      pageTitle: 'Batting Drive Mechanics',
+      pageTitle: 'Batting Mechanics',
       recommendedProtocolId: 'cricket_batting',
       capabilityStatus: 'available', // 'available' | 'foundation' | 'coming_soon'
-      shortPurpose: 'Head position over ball, high front elbow, and front-knee brace.',
-      roleReason: 'Front-foot balance anchors run scoring against pace and spin.',
+      shortPurpose: 'Stance stability, head-over-knee balance, lead elbow guidance, and swing flow.',
+      roleReason: 'Stable base and head alignment anchor consistent stroke execution against pace and spin.',
       foundationalChoices: ['squat', 'vertical_jump'],
       notice: null,
     },
@@ -47,7 +47,7 @@ export const ROLE_ASSESSMENT_MATRIX = {
       pageTitle: 'All-Rounder Kinetic Assessment',
       recommendedProtocolId: 'cricket_batting',
       capabilityStatus: 'available',
-      shortPurpose: 'Batting drive mechanics or bowling power baseline.',
+      shortPurpose: 'Batting mechanics or bowling power baseline.',
       roleReason: 'Demands front-foot stability and explosive gather deceleration.',
       allowFocusChoice: true,
       focusChoices: [
@@ -58,7 +58,7 @@ export const ROLE_ASSESSMENT_MATRIX = {
       notice: {
         type: 'info',
         title: 'Choose training focus',
-        description: 'Select batting drive mechanics or lower-body bowling power baseline.',
+        description: 'Select batting mechanics or lower-body bowling power baseline.',
       },
     },
 
@@ -83,33 +83,33 @@ export const ROLE_ASSESSMENT_MATRIX = {
   football: {
     striker: {
       roleTitle: 'Football Striker',
-      pageTitle: 'Shot Power & Finishing Mechanics',
+      pageTitle: 'Ball-Striking & Finishing Mechanics',
       recommendedProtocolId: 'football_strike',
       capabilityStatus: 'available',
-      shortPurpose: 'Plant stability, hip whip rotation, and torso drive over the ball.',
-      roleReason: 'Plant-knee deceleration and forward torso lean keep powerful shots on target.',
+      shortPurpose: 'Plant stability, hip whip rotation, and torso control over the ball.',
+      roleReason: 'Plant-knee deceleration and forward torso lean keep strikes controlled and accurate.',
       foundationalChoices: ['vertical_jump', 'squat'],
       notice: null,
     },
 
     winger: {
       roleTitle: 'Winger / Wide Forward',
-      pageTitle: 'Crossing & Striking Mechanics',
+      pageTitle: 'Ball-Striking & Delivery Mechanics',
       recommendedProtocolId: 'football_strike',
       capabilityStatus: 'available',
-      overrideProtocolName: 'Crossing & Striking Mechanics',
+      overrideProtocolName: 'Ball-Striking & Delivery Mechanics',
       shortPurpose: 'Plant-leg braking, rotational whip, and delivery balance.',
-      roleReason: 'Crossing on the run demands plant-knee stability and rotational control.',
+      roleReason: 'Delivery on the run demands plant-knee stability and rotational control.',
       foundationalChoices: ['vertical_jump', 'squat'],
       notice: null,
     },
 
     central_midfielder: {
       roleTitle: 'Central Midfielder',
-      pageTitle: 'Passing & Ball-Strike Mechanics',
+      pageTitle: 'Ball-Striking & Distribution Mechanics',
       recommendedProtocolId: 'football_strike',
       capabilityStatus: 'available',
-      overrideProtocolName: 'Passing & Ball-Strike Mechanics',
+      overrideProtocolName: 'Ball-Striking & Distribution Mechanics',
       shortPurpose: 'Plant alignment, hip rotation, and passing follow-through.',
       roleReason: 'Accurate distribution demands plant-knee stability and repeatable follow-through.',
       foundationalChoices: ['squat', 'vertical_jump'],
@@ -118,11 +118,11 @@ export const ROLE_ASSESSMENT_MATRIX = {
 
     centre_back: {
       roleTitle: 'Centre Back / Defender',
-      pageTitle: 'Clearance Strike & Deceleration',
+      pageTitle: 'Ball-Striking & Clearance Mechanics',
       recommendedProtocolId: 'football_strike',
       capabilityStatus: 'available',
-      overrideProtocolName: 'Clearance Strike & Deceleration',
-      shortPurpose: 'Clearance striking and single-leg deceleration control.',
+      overrideProtocolName: 'Ball-Striking & Clearance Mechanics',
+      shortPurpose: 'Clearance ball-striking and single-leg deceleration control.',
       roleReason: 'High-pressure clearances demand grounded knee stability and safe braking.',
       foundationalChoices: ['vertical_jump', 'squat'],
       notice: null,
@@ -149,21 +149,21 @@ export const ROLE_ASSESSMENT_MATRIX = {
   basketball: {
     point_guard: {
       roleTitle: 'Point Guard',
-      pageTitle: 'Pull-Up Jump Shot & Balance',
+      pageTitle: 'Shooting & Elevation Mechanics',
       recommendedProtocolId: 'basketball_jump_shot',
       capabilityStatus: 'available',
       shortPurpose: 'Elevation, shooting elbow alignment, and landing balance.',
-      roleReason: 'Pull-up shooting demands zero horizontal drift and balanced two-foot deceleration.',
+      roleReason: 'Shooting consistency demands vertical takeoff without fade and balanced two-foot deceleration.',
       foundationalChoices: ['vertical_jump', 'squat'],
       notice: null,
     },
 
     shooting_guard: {
       roleTitle: 'Shooting Guard',
-      pageTitle: 'Catch-and-Shoot Release Mechanics',
+      pageTitle: 'Shooting & Release Mechanics',
       recommendedProtocolId: 'basketball_jump_shot',
       capabilityStatus: 'available',
-      overrideProtocolName: 'Catch-and-Shoot Release Mechanics',
+      overrideProtocolName: 'Shooting & Release Mechanics',
       shortPurpose: 'Elbow alignment at release, jump peak timing, and symmetrical landing.',
       roleReason: 'Consistent shooting relies on repeatable vertical alignment and rapid release.',
       foundationalChoices: ['vertical_jump', 'squat'],
@@ -172,7 +172,7 @@ export const ROLE_ASSESSMENT_MATRIX = {
 
     small_forward: {
       roleTitle: 'Small Forward',
-      pageTitle: 'Mid-Range Jump Shot Mechanics',
+      pageTitle: 'Mid-Range Shooting Mechanics',
       recommendedProtocolId: 'basketball_jump_shot',
       capabilityStatus: 'available',
       shortPurpose: 'Shooting elevation, flight posture, and landing shock control.',

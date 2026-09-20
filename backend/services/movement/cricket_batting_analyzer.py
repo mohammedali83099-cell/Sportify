@@ -5,13 +5,13 @@ from .base import MovementProtocol, MovementAnalysisResult, MetricObservation
 
 class CricketBattingAnalyzer(MovementProtocol):
     """
-    Biomechanical Analyzer for Cricket Batting (Forward Press & Drive Mechanics).
+    Biomechanical Analyzer for Cricket Batting Mechanics.
     Evaluates front knee stride flexion, head over ball alignment, lead elbow elevation,
     and rotational weight transfer.
     """
 
     protocol_id = "cricket_batting"
-    name = "Cricket Batting Drive Assessment"
+    name = "Cricket Batting Mechanics Assessment"
     # Shoulders (11,12), Elbows (13,14), Wrists (15,16), Hips (23,24), Knees (25,26), Ankles (27,28)
     required_landmarks = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
     min_usable_frames = 12

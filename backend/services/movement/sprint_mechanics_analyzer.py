@@ -11,7 +11,7 @@ class SprintMechanicsAnalyzer(MovementProtocol):
     """
 
     protocol_id = "sprint_mechanics"
-    name = "Sprint Mechanics & Acceleration Assessment"
+    name = "Sprint & Acceleration Mechanics Assessment"
     # Shoulders (11, 12), Hips (23, 24), Knees (25, 26), Ankles (27, 28)
     required_landmarks = [11, 12, 23, 24, 25, 26, 27, 28]
     min_usable_frames = 12

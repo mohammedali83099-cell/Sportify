@@ -19,7 +19,7 @@
 export const PROTOCOL_GUIDE_MATRIX = {
   football_strike: {
     protocolId: 'football_strike',
-    name: 'Football Striking Mechanics',
+    name: 'Football Ball-Striking Mechanics',
     shortPurpose: 'Plant knee stability, striking hip whip, and torso lean at impact.',
     category: 'sport_specific',
     metrics: [
@@ -34,8 +34,8 @@ export const PROTOCOL_GUIDE_MATRIX = {
     repetitionCount: '2–3 Strikes (Dominant Foot)',
     movementInstructions: 'Natural 2–3 step run-up, firm plant beside ball, strike through with balanced landing.',
     warningMessage: 'Stationary camera • High contrast • Keep plant foot and ball in frame.',
-    uploadLabel: 'Record or Choose Football Strike Video',
-    analyzeButtonLabel: 'Analyze Striking Mechanics',
+    uploadLabel: 'Record or Choose Ball-Striking Video',
+    analyzeButtonLabel: 'Analyze Ball-Striking Mechanics',
     steps: [
       { step: 1, title: '45° or Side-On', desc: '3–5m away at waist height.' },
       { step: 2, title: 'Full Body Framing', desc: 'Head to toe visible throughout.' },
@@ -46,7 +46,7 @@ export const PROTOCOL_GUIDE_MATRIX = {
 
   basketball_jump_shot: {
     protocolId: 'basketball_jump_shot',
-    name: 'Jump Shot & Release Mechanics',
+    name: 'Basketball Shooting & Elevation Mechanics',
     shortPurpose: 'Vertical elevation, shooting elbow alignment, and landing symmetry.',
     category: 'sport_specific',
     metrics: [
@@ -61,8 +61,8 @@ export const PROTOCOL_GUIDE_MATRIX = {
     repetitionCount: '2–3 Game-Speed Jump Shots',
     movementInstructions: 'Set base, elevate vertically, extend shooting arm at peak, and land balanced on both feet.',
     warningMessage: 'Leave overhead room so shooting hand does not clip the top frame.',
-    uploadLabel: 'Record or Choose Jump Shot Video',
-    analyzeButtonLabel: 'Analyze Jump Shot Mechanics',
+    uploadLabel: 'Record or Choose Basketball Shooting Video',
+    analyzeButtonLabel: 'Analyze Shooting Mechanics',
     steps: [
       { step: 1, title: 'Diagonal 45° Angle', desc: '4m away at chest height.' },
       { step: 2, title: 'Overhead Headroom', desc: 'Hands visible at peak elevation.' },
@@ -73,12 +73,12 @@ export const PROTOCOL_GUIDE_MATRIX = {
 
   cricket_batting: {
     protocolId: 'cricket_batting',
-    name: 'Front-Foot Drive Mechanics',
-    shortPurpose: 'Head position over ball, high front elbow, and front-knee brace.',
+    name: 'Cricket Batting Mechanics',
+    shortPurpose: 'Stance stability, head-over-knee balance, lead elbow guidance, and swing flow.',
     category: 'sport_specific',
     metrics: [
       { key: 'knee_stability', label: 'Front Knee Brace', desc: 'Firm lead-knee stability' },
-      { key: 'balance', label: 'Head Alignment', desc: 'Head over ball & weight forward' },
+      { key: 'balance', label: 'Head Alignment', desc: 'Head over base & weight forward' },
       { key: 'upper_body_posture', label: 'Lead Elbow Guidance', desc: 'High leading elbow path' },
       { key: 'explosive_capacity', label: 'Downswing Speed', desc: 'Downswing acceleration' },
       { key: 'movement_symmetry', label: 'Transfer Symmetry', desc: 'Bilateral weight shift' },
@@ -86,22 +86,22 @@ export const PROTOCOL_GUIDE_MATRIX = {
     ],
     cameraPlacement: 'Perpendicular side-on view, 3–4m from crease at waist height.',
     framingRequirement: 'Full body visible from footwear to bat top in follow-through.',
-    repetitionCount: '2–3 Front-Foot Drives',
+    repetitionCount: '2–3 Batting Strokes',
     movementInstructions: 'Natural stance, trigger forward with head over knee, present full bat face.',
     warningMessage: 'Record in consistent lighting with clear contrast between clothing, bat, and pitch.',
-    uploadLabel: 'Record or Choose Batting Drive Video',
+    uploadLabel: 'Record or Choose Batting Video',
     analyzeButtonLabel: 'Analyze Batting Mechanics',
     steps: [
       { step: 1, title: 'Side-On Angle', desc: '3–4m perpendicular to crease.' },
       { step: 2, title: 'Full Stance in View', desc: 'Footwear to raised bat visible.' },
-      { step: 3, title: '2–3 Match Drives', desc: 'Natural tempo and follow-through.' },
+      { step: 3, title: '2–3 Clean Strokes', desc: 'Natural tempo and follow-through.' },
       { step: 4, title: 'High Contrast Light', desc: 'Distinct contrast against backdrop.' },
     ],
   },
 
   sprint_mechanics: {
     protocolId: 'sprint_mechanics',
-    name: 'Sprint Acceleration Biomechanics',
+    name: 'Sprint & Acceleration Mechanics',
     shortPurpose: 'Drive lean angle, high knee recovery punch, and stride rhythm.',
     category: 'sport_specific',
     metrics: [
@@ -116,7 +116,7 @@ export const PROTOCOL_GUIDE_MATRIX = {
     repetitionCount: '1–2 Acceleration Runs',
     movementInstructions: 'Start 2 steps before frame, sprint through capture zone at 90–100% effort.',
     warningMessage: 'Record at 60 FPS if supported for maximum keypoint precision.',
-    uploadLabel: 'Record or Choose Sprint Acceleration Video',
+    uploadLabel: 'Record or Choose Sprint Video',
     analyzeButtonLabel: 'Analyze Sprint Mechanics',
     steps: [
       { step: 1, title: 'Track-Side Angle', desc: '4–6m perpendicular to lane.' },

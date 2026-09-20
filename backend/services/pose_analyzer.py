@@ -186,7 +186,7 @@ class PoseAnalyzer:
                 ]
             )
 
-        prompt = f"""You are an elite sports biomechanics coach. Provide concise, direct, practical coaching grounded ONLY in the verified observations below:
+        prompt = f"""You are an elite sports biomechanics coach. Provide concise, direct, practical coaching grounded strictly in the verified movement observations below:
 
 Sport: {sport.title()} | Role: {role.replace('_', ' ').title()}
 Assessment Protocol: {protocol_name or 'Movement Assessment'}
@@ -198,17 +198,19 @@ Movement Scores:
 {scores_summary}
 
 Rules:
-- Strictly address the observed movement patterns. Do not invent unobserved weaknesses.
+- Strictly evaluate observable movement mechanics (balance, posture, kinetic chain sequencing, joint angles, base stability, follow-through).
+- Do NOT guess, classify, or make confident claims about specific play or shot names (e.g., do not claim 'this was a cover drive', 'this was a penalty kick', etc.). Keep the analysis focused on physical execution quality.
+- Do NOT use excessive wording, filler, or over-hedged disclaimers. Deliver crisp, actionable cues the athlete can immediately apply.
 - Return ONLY valid JSON (no markdown):
 {{
-  "overall_assessment": "2-3 sentence grounded summary",
+  "overall_assessment": "2-3 sentence grounded summary of physical execution and movement quality",
   "strengths": ["grounded strength 1", "grounded strength 2"],
   "technique_tips": [
     {{"title": "title", "detail": "actionable cue addressing observed metric", "priority": "high"}},
     {{"title": "title", "detail": "actionable cue", "priority": "medium"}}
   ],
   "strategy_tips": [
-    {{"title": "title", "detail": "tactical application for {role} in {sport}"}}
+    {{"title": "title", "detail": "practical application for {role} in {sport}"}}
   ],
   "drills": [
     {{"name": "drill name", "description": "exact drill instructions addressing top weakness", "reps": "sets x reps"}}
@@ -219,7 +221,10 @@ Rules:
             from .gemini_service import gemini_service
             res = gemini_service.generate_json(
                 prompt=prompt,
-                system_instruction="You are an elite sports biomechanics coach. Respond ONLY with valid JSON grounded strictly in observed metrics.",
+                system_instruction=(
+                    "You are an elite sports biomechanics coach. Respond ONLY with valid JSON grounded strictly in observed metrics. "
+                    "Do not assert unverified specific play names; focus purely on physical mechanics, kinetic chain sequencing, and execution quality."
+                ),
                 temperature=0.2,
             )
             if res:

@@ -5,13 +5,13 @@ from .base import MovementProtocol, MovementAnalysisResult, MetricObservation
 
 class FootballStrikeAnalyzer(MovementProtocol):
     """
-    Biomechanical Analyzer for Football / Soccer Shooting and Kicking Mechanics.
+    Biomechanical Analyzer for Football / Soccer Ball-Striking Mechanics.
     Evaluates plant-leg knee stability, striking hip extension/whip, torso posture,
     and single-leg deceleration balance.
     """
 
     protocol_id = "football_strike"
-    name = "Football Strike & Kicking Mechanics Assessment"
+    name = "Football Ball-Striking Mechanics Assessment"
     # Shoulders (11, 12), Hips (23, 24), Knees (25, 26), Ankles (27, 28)
     required_landmarks = [11, 12, 23, 24, 25, 26, 27, 28]
     min_usable_frames = 12

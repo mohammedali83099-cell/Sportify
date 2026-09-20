@@ -5,13 +5,13 @@ from .base import MovementProtocol, MovementAnalysisResult, MetricObservation
 
 class BasketballJumpShotAnalyzer(MovementProtocol):
     """
-    Biomechanical Analyzer for Basketball Jump Shot and Release Mechanics.
+    Biomechanical Analyzer for Basketball Shooting and Elevation Mechanics.
     Evaluates vertical jump elevation, shooting elbow set & release extension,
     torso verticality, and landing knee valgus stability.
     """
 
     protocol_id = "basketball_jump_shot"
-    name = "Basketball Jump Shot & Release Mechanics Assessment"
+    name = "Basketball Shooting & Elevation Mechanics Assessment"
     # Shoulders (11, 12), Elbows (13, 14), Wrists (15, 16), Hips (23, 24), Knees (25, 26), Ankles (27, 28)
     required_landmarks = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
     min_usable_frames = 12
