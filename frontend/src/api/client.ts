@@ -137,9 +137,13 @@ export const planAPI = {
   getRecovery: (): Promise<any> =>
     apiClient.get('/plan/recovery').then((res) => res.data),
 
+  submitRecoveryCheckIn: (data: any): Promise<any> =>
+    apiClient.post('/plan/recovery/check-in', data).then((res) => res.data),
+
   getHistory: (): Promise<TrainingPlan[]> =>
     apiClient.get<TrainingPlan[]>('/plan/history').then((res) => res.data),
 };
+
 
 export const progressAPI = {
   logSession: (data: any): Promise<any> =>

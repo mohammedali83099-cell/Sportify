@@ -62,3 +62,20 @@ class ReassessmentComparisonResponse(BaseModel):
     persisting_bottlenecks: List[Dict[str, Any]]
     emerging_priorities: List[Dict[str, Any]]
     updated_development_profile: Dict[str, Any]
+
+
+class RecoveryCheckInRequest(BaseModel):
+    injury_name: str = Field(..., description="Specific injury or problem, e.g. 'Grade 1 Hamstring Strain'")
+    severity: str = Field(default="Moderate", description="'Mild', 'Moderate', or 'Severe'")
+    doctor_rest_days: int = Field(default=3, ge=0, le=90, description="Number of complete rest days prescribed by doctor")
+    doctor_rehab_days: int = Field(default=7, ge=0, le=180, description="Number of active physical therapy/rehab days prescribed by doctor")
+    doctor_exercises: Optional[str] = Field(None, description="Specific rehab exercises prescribed by doctor")
+    doctor_restrictions: Optional[str] = Field(None, description="Movements, exercises, or loads strictly forbidden by doctor")
+    current_day_offset: Optional[int] = Field(default=1, ge=1, description="Current day in the recovery timeline")
+
+
+class RecoveryCheckInResponse(BaseModel):
+    status: str
+    message: str
+    recovery_protocol: Dict[str, Any]
+

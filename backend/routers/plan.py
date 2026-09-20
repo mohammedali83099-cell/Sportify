@@ -9,7 +9,7 @@ from models.athlete import Athlete
 from models.athlete_profile import AthleteProfile
 from models.assessment import BottleneckReport
 from models.plan import TrainingPlan, ProgressLog
-from schemas.plan import TrainingPlanResponse
+from schemas.plan import TrainingPlanResponse, RecoveryCheckInRequest, RecoveryCheckInResponse
 from .auth import get_current_athlete
 from services.plan_generator import plan_generator
 
@@ -42,7 +42,7 @@ async def generate_plan(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Generate a 4-week training pathway grounded in the athlete's development priorities and exercise library.
+    Generate a 4-week role-specific baseline training pathway.
     """
     prof_res = await db.execute(
         select(AthleteProfile).filter(AthleteProfile.athlete_id == current_athlete.id)
@@ -68,6 +68,18 @@ async def generate_plan(
         strengths=strengths,
         development_areas=dev_areas,
     )
+
+    # If athlete already has an active doctor check-in, preserve it into the newly generated plan
+    existing_doc_check_in = None
+    if profile.playstyle_profile and isinstance(profile.playstyle_profile, dict):
+        existing_doc_check_in = profile.playstyle_profile.get("doctor_recovery_check_in")
+
+    if existing_doc_check_in:
+        plan_data["recovery_protocol"] = plan_generator.generate_recovery_plan(
+            athlete_profile=profile.to_dict(),
+            doctor_check_in=existing_doc_check_in,
+            bottlenecks=bottlenecks,
+        )
 
     # Deactivate older plans
     old_plans_res = await db.execute(
@@ -97,12 +109,17 @@ async def get_dynamic_recovery_plan(
     current_athlete: Athlete = Depends(get_current_athlete),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Retrieve dynamic recovery recommendations grounded in recent session load."""
+    """Retrieve dynamic recovery recommendations or active doctor-guided protocol."""
     prof_res = await db.execute(
         select(AthleteProfile).filter(AthleteProfile.athlete_id == current_athlete.id)
     )
     profile = prof_res.scalars().first()
     profile_dict = profile.to_dict() if profile else {"sport": "cricket", "role": "batsman"}
+
+    # Check if a doctor check-in exists in profile
+    doc_check_in = None
+    if profile and profile.playstyle_profile and isinstance(profile.playstyle_profile, dict):
+        doc_check_in = profile.playstyle_profile.get("doctor_recovery_check_in")
 
     # Fetch recent logs for load calculation
     logs_res = await db.execute(
@@ -125,8 +142,59 @@ async def get_dynamic_recovery_plan(
 
     return plan_generator.generate_recovery_plan(
         athlete_profile=profile_dict,
+        doctor_check_in=doc_check_in,
         bottlenecks=report.bottlenecks if report else [],
         recent_sessions_load={"avg_rpe": avg_rpe, "total_minutes_week": total_mins},
+    )
+
+
+@router.post("/recovery/check-in", response_model=RecoveryCheckInResponse)
+async def submit_doctor_recovery_checkin(
+    check_in: RecoveryCheckInRequest,
+    current_athlete: Athlete = Depends(get_current_athlete),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    User check-in for an injury with doctor recommendations (rest days, rehab days, exercises, restrictions).
+    The system synthesizes the doctor's orders and generates a 3-phase recovery progression.
+    """
+    prof_res = await db.execute(
+        select(AthleteProfile).filter(AthleteProfile.athlete_id == current_athlete.id)
+    )
+    profile = prof_res.scalars().first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Athlete profile required before recovery check-in")
+
+    # Store check-in data in profile.playstyle_profile
+    playstyle = profile.playstyle_profile or {}
+    check_in_dict = check_in.model_dump()
+    playstyle["doctor_recovery_check_in"] = check_in_dict
+    profile.playstyle_profile = dict(playstyle)
+
+    # Generate the 3-phase doctor-grounded recovery protocol
+    recovery_proto = plan_generator.generate_recovery_plan(
+        athlete_profile=profile.to_dict(),
+        doctor_check_in=check_in_dict,
+    )
+
+    # Also update the active training plan's recovery protocol if one exists
+    plan_res = await db.execute(
+        select(TrainingPlan)
+        .filter(TrainingPlan.athlete_id == current_athlete.id, TrainingPlan.is_active == True)
+        .order_by(TrainingPlan.created_at.desc())
+    )
+    active_plan = plan_res.scalars().first()
+    if active_plan:
+        plan_data = dict(active_plan.plan_data)
+        plan_data["recovery_protocol"] = recovery_proto
+        active_plan.plan_data = plan_data
+
+    await db.commit()
+
+    return RecoveryCheckInResponse(
+        status="success",
+        message="Doctor recommendations processed successfully. Recovery protocol initialized.",
+        recovery_protocol=recovery_proto,
     )
 
 
@@ -141,3 +209,4 @@ async def get_plan_history(
         .order_by(TrainingPlan.created_at.desc())
     )
     return result.scalars().all()
+
