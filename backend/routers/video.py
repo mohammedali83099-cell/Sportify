@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 import os
 import shutil
 import uuid
+import json
 
 from services.pose_analyzer import PoseAnalyzer
 from services.movement.registry import protocol_registry
@@ -21,27 +22,28 @@ def _run_coaching_job(
     role: str,
     sub_role: Optional[str] = None,
     protocol_id: Optional[str] = None,
+    athlete_context: Optional[Dict[str, Any]] = None,
 ):
     """
     Background worker:
     1. Runs activity-aware VideoQualityGate + specific MovementProtocol.
-    2. If valid, generates evidence-grounded coaching advice.
+    2. If valid, generates evidence-grounded coaching advice using athlete context.
     3. If invalid/failed, records explicit failure status without fabricating fake metrics.
     """
     try:
         analyzer = PoseAnalyzer()
-        athlete_context = {
-            "sport": sport,
-            "role": role,
-            "primary_role": role,
-            "sub_role": sub_role,
-        }
+        ctx = dict(athlete_context) if athlete_context else {}
+        ctx.setdefault("sport", sport)
+        ctx.setdefault("role", role)
+        ctx.setdefault("primary_role", role)
+        if sub_role:
+            ctx.setdefault("sub_role", sub_role)
 
         # Activity-aware analysis
         analysis_result = analyzer.analyze_video(
             video_path,
             activity_or_protocol=protocol_id,
-            athlete_context=athlete_context,
+            athlete_context=ctx,
         )
 
         if not analysis_result.get("is_valid", False):
@@ -68,6 +70,7 @@ def _run_coaching_job(
             movement_scores,
             protocol_name=protocol_name,
             metric_details=metric_details,
+            athlete_context=ctx,
         )
 
         coaching_jobs[job_id] = {
@@ -114,10 +117,12 @@ async def coach_video(
     sub_role: Optional[str] = Form(default=None),
     protocol: Optional[str] = Form(default=None),
     activity: Optional[str] = Form(default=None),
+    athlete_context: Optional[str] = Form(default=None),
 ):
     """
     Upload an activity video for biomechanical analysis and evidence-grounded coaching.
     Accepts activity / protocol parameter to enforce appropriate analysis model.
+    Accepts athlete_context JSON string to ground coaching advice in athlete profile & goals.
     """
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     job_id = str(uuid.uuid4())[:8]
@@ -129,6 +134,13 @@ async def coach_video(
         )
 
     selected_protocol = protocol or activity
+
+    context_dict = None
+    if athlete_context:
+        try:
+            context_dict = json.loads(athlete_context)
+        except Exception:
+            context_dict = None
 
     video_path = os.path.join(settings.UPLOAD_DIR, f"{job_id}.{ext}")
     with open(video_path, "wb") as f:
@@ -144,6 +156,7 @@ async def coach_video(
         role.lower().replace(" ", "_"),
         sub_role.lower().replace(" ", "_") if sub_role else None,
         selected_protocol,
+        context_dict,
     )
 
     return {

@@ -13,7 +13,7 @@ import CameraSetupGuide from '../components/assessment/CameraSetupGuide';
 import AssessmentUploader from '../components/assessment/AssessmentUploader';
 import FoundationalSection from '../components/assessment/FoundationalSection';
 import RoleNoticeCard from '../components/assessment/RoleNoticeCard';
-import { TargetIcon, ArrowRightIcon, AlertTriangleIcon, SlidersIcon } from '../components/common/Icons';
+import { TargetIcon, ArrowRightIcon, AlertTriangleIcon, SlidersIcon, CheckIcon } from '../components/common/Icons';
 
 export const SportAssessmentPage: React.FC = () => {
   const { sport: rawSportParam } = useParams<{ sport: string }>();
@@ -55,13 +55,6 @@ export const SportAssessmentPage: React.FC = () => {
         subRole: profile?.secondary_role,
       })
     : null;
-
-  // Initialize and sync selected protocol with recommended protocol
-  useEffect(() => {
-    if (assessmentContext?.primaryProtocolId) {
-      setSelectedProtocolId(assessmentContext.primaryProtocolId);
-    }
-  }, [assessmentContext?.primaryProtocolId]);
 
   // Smooth scroll helper
   const handleScrollToUploader = () => {
@@ -157,16 +150,18 @@ export const SportAssessmentPage: React.FC = () => {
   }
 
   // ── 6. DYNAMIC ACTIVE PROTOCOL RESOLUTION ───────────────────────────────────
+  // Default to the sport's primary calibrated protocol
   const activeProtocolId = selectedProtocolId || assessmentContext.primaryProtocolId;
-  const activeProtocolGuide = getProtocolGuide(activeProtocolId);
+  const activeProtocolGuide = activeProtocolId ? getProtocolGuide(activeProtocolId) : assessmentContext.primaryGuide;
 
   const isPrimarySelected = activeProtocolId === assessmentContext.primaryProtocolId;
 
   // Active protocol display name and role reason
-  const activeProtocolName =
-    isPrimarySelected && assessmentContext.roleConfig.overrideProtocolName
+  const activeProtocolName = activeProtocolGuide
+    ? isPrimarySelected && assessmentContext.roleConfig.overrideProtocolName
       ? assessmentContext.roleConfig.overrideProtocolName
-      : activeProtocolGuide.name;
+      : activeProtocolGuide.name
+    : '';
 
   const activeCapabilityStatus = isPrimarySelected
     ? assessmentContext.roleConfig.capabilityStatus
@@ -178,14 +173,16 @@ export const SportAssessmentPage: React.FC = () => {
     ? 'Foundational eccentric knee stability and hip mobility supporting sport-specific movement.'
     : 'Foundational rate of force development and bilateral deceleration landing control.';
 
-  // Build the active protocol card payload
-  const activeProtocolCardData = {
-    id: activeProtocolId,
-    protocolId: activeProtocolId,
-    name: activeProtocolName,
-    shortPurpose: activeProtocolGuide.shortPurpose,
-    metrics: activeProtocolGuide.metrics,
-  };
+  // Build the active protocol card payload if chosen
+  const activeProtocolCardData = activeProtocolGuide && activeProtocolId
+    ? {
+        id: activeProtocolId,
+        protocolId: activeProtocolId,
+        name: activeProtocolName,
+        shortPurpose: activeProtocolGuide.shortPurpose,
+        metrics: activeProtocolGuide.metrics,
+      }
+    : null;
 
   return (
     <div className="space-y-4 select-none w-full pb-8">
@@ -206,103 +203,92 @@ export const SportAssessmentPage: React.FC = () => {
       {/* 3. All-Rounder Focus Switcher (Cricket All-Rounder only) */}
       {assessmentContext.roleConfig.allowFocusChoice && (
         <div className="rounded-2xl bg-[#0C0E14]/80 backdrop-blur-md border border-white/[0.08] p-4 sm:p-5 space-y-2 shadow-lg">
-          <div className="flex items-center gap-2 text-xs font-bold font-tech text-white uppercase tracking-wider">
-            <SlidersIcon className="w-3.5 h-3.5 text-slate-300" />
-            <span>Select All-Rounder Focus Today</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold font-tech text-white uppercase tracking-wider">
+              <SlidersIcon className="w-3.5 h-3.5 text-slate-300" />
+              <span>Select All-Rounder Focus Today</span>
+            </div>
+            <span className="text-[11px] text-slate-400 font-sans">Tap to select or deselect</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
             {assessmentContext.roleConfig.focusChoices?.map((choice: any) => (
               <button
                 key={choice.protocolId}
                 type="button"
                 onClick={() => {
-                  setSelectedProtocolId(choice.protocolId);
+                  setSelectedProtocolId((prev) =>
+                    prev === choice.protocolId ? null : choice.protocolId
+                  );
                   handleScrollToUploader();
                 }}
-                className={`p-2.5 rounded-lg border text-left text-xs transition-all active-press ${
+                className={`p-3 rounded-xl border text-left text-xs sm:text-sm transition-all flex items-center justify-between ${
                   activeProtocolId === choice.protocolId
-                    ? 'bg-white/[0.12] border-white/40 text-white font-bold shadow-sm'
-                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-white'
+                    ? 'bg-white/[0.12] border-white/40 text-white font-bold shadow-sm ring-1 ring-white/20'
+                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
                 <div className="font-tech">{choice.label}</div>
+                {activeProtocolId === choice.protocolId && (
+                  <CheckIcon className="w-4 h-4 text-emerald-400 shrink-0 ml-1.5" />
+                )}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* 4. Native Segmented Protocol Switcher */}
-      <div className="space-y-1.5">
-        <div className="text-xs font-medium text-slate-400 px-0.5">
-          Choose Protocol
-        </div>
-        <div className="p-1 rounded-xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm flex gap-1 overflow-x-auto no-scrollbar">
-          {/* Primary Recommended Protocol Tab */}
-          <button
-            type="button"
-            onClick={() => setSelectedProtocolId(assessmentContext.primaryProtocolId)}
-            className={`flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs font-sans font-medium transition-all text-center truncate ${
-              activeProtocolId === assessmentContext.primaryProtocolId
-                ? 'bg-white text-slate-950 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-            }`}
-          >
-            {assessmentContext.roleConfig.overrideProtocolName || assessmentContext.primaryGuide.name}
-          </button>
-
-          {/* Foundational Baselines Tabs */}
-          {assessmentContext.foundationalOptions?.map((opt: any) => (
-            <button
-              key={opt.protocolId}
-              type="button"
-              onClick={() => setSelectedProtocolId(opt.protocolId)}
-              className={`flex-1 min-w-[110px] py-2 px-3 rounded-lg text-xs font-sans font-medium transition-all text-center truncate ${
-                activeProtocolId === opt.protocolId
-                  ? 'bg-white text-slate-950 font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              {opt.name.replace(' Baseline', '').replace(' Kinematics', '')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Dominant Capture Station (Recording & Upload) */}
+      {/* 4. Dominant Capture Station (Recording & Upload) */}
       <AssessmentUploader
         sportKey={assessmentContext.sportKey}
         primaryRole={profile.primary_role}
         subRole={profile.secondary_role}
         activeProtocolId={activeProtocolId}
         activeProtocolName={activeProtocolName}
-        uploadLabel={activeProtocolGuide.uploadLabel}
-        analyzeButtonLabel={activeProtocolGuide.analyzeButtonLabel}
+        uploadLabel={activeProtocolGuide?.uploadLabel}
+        analyzeButtonLabel={activeProtocolGuide?.analyzeButtonLabel}
       />
 
       {/* 6. Active Protocol Details & Visual Camera Setup Guide */}
-      <div className="space-y-3.5">
-        <PrimaryProtocolCard
-          protocol={activeProtocolCardData}
-          status={activeCapabilityStatus}
-          roleReason={activeRoleReason}
-          isSelected={true}
-        />
+      {activeProtocolCardData && activeProtocolGuide ? (
+        <div className="space-y-3.5">
+          <PrimaryProtocolCard
+            protocol={activeProtocolCardData}
+            status={activeCapabilityStatus}
+            roleReason={activeRoleReason}
+            isSelected={true}
+          />
 
-        <CameraSetupGuide
-          steps={activeProtocolGuide.steps}
-          protocolName={activeProtocolName}
-          repetitionCount={activeProtocolGuide.repetitionCount}
-          warningMessage={activeProtocolGuide.warningMessage}
-        />
-      </div>
+          <CameraSetupGuide
+            steps={activeProtocolGuide.steps}
+            protocolName={activeProtocolName}
+            repetitionCount={activeProtocolGuide.repetitionCount}
+            warningMessage={activeProtocolGuide.warningMessage}
+          />
+        </div>
+      ) : (
+        <div className="rounded-2xl bg-[#0C0E14]/80 backdrop-blur-md border border-white/[0.08] p-5 sm:p-6 text-center space-y-2.5 shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center mx-auto text-sky-400">
+            <TargetIcon className="w-5 h-5" />
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[11px] font-sans font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+            <span>Automatic Movement Detection Active</span>
+          </div>
+          <h3 className="text-sm font-bold font-heading text-white">
+            Ready to Record or Upload
+          </h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto font-sans leading-relaxed">
+            You do not need to choose a protocol in advance. Record or upload your movement video directly, and our computer vision pipeline will automatically classify your movement. You can also tap any protocol above to view specific camera framing guidelines.
+          </p>
+        </div>
+      )}
 
       {/* 7. Secondary Foundational Baselines Switcher */}
       <FoundationalSection
         options={assessmentContext.foundationalOptions}
-        selectedProtocolId={activeProtocolId}
+        selectedProtocolId={activeProtocolId || undefined}
         onSelectProtocol={(id) => {
-          setSelectedProtocolId(id);
+          setSelectedProtocolId((prev) => (prev === id ? null : id));
           handleScrollToUploader();
         }}
       />

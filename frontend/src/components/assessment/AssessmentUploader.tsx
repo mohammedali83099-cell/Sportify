@@ -16,7 +16,7 @@ export interface AssessmentUploaderProps {
   sportKey?: string;
   primaryRole?: string | null;
   subRole?: string | null;
-  activeProtocolId: string;
+  activeProtocolId?: string | null;
   activeProtocolName?: string;
   uploadLabel?: string;
   analyzeButtonLabel?: string;
@@ -36,6 +36,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
   const navigate = useNavigate();
   const setAssessment = useAthleteStore((state) => state.setAssessment);
   const setBottlenecks = useAthleteStore((state) => state.setBottlenecks);
+  const profile = useAthleteStore((state) => state.profile);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -75,6 +76,16 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
     setVideoPreviewUrl(url);
   };
 
+  const handleRecordClick = () => {
+    setErrorMsg(null);
+    recordInputRef.current?.click();
+  };
+
+  const handleChooseClick = () => {
+    setErrorMsg(null);
+    chooseInputRef.current?.click();
+  };
+
   const handleStartAnalysis = async () => {
     if (!selectedFile) {
       setErrorMsg('Please select or record a video first.');
@@ -92,7 +103,29 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
       if (subRole) {
         formData.append('sub_role', subRole);
       }
-      formData.append('protocol', activeProtocolId);
+      formData.append('protocol', activeProtocolId || 'auto');
+
+      if (profile) {
+        const athleteContext = {
+          sport: profile.sport || sportKey,
+          role: profile.primary_role || primaryRole,
+          sub_role: profile.sub_role || subRole,
+          primary_playstyle: profile.primary_playstyle,
+          secondary_tendencies: profile.secondary_tendencies,
+          playstyle_profile: profile.playstyle_profile,
+          dominant_hand: profile.dominant_hand,
+          dominant_foot: profile.dominant_foot,
+          stance: profile.stance,
+          surface_preference: profile.surface_preference,
+          training_environment: profile.training_environment,
+          equipment_access: profile.equipment_access,
+          athlete_description: profile.athlete_description,
+          personal_goals_text: profile.personal_goals_text,
+          development_objectives: profile.development_objectives || profile.goals,
+          experience_level: profile.experience_level,
+        };
+        formData.append('athlete_context', JSON.stringify(athleteContext));
+      }
 
       const uploadRes = await videoAPI.coach(formData);
       const jobId = uploadRes?.job_id;
@@ -261,10 +294,12 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
 
             <div>
               <h3 className="text-sm font-bold text-white font-heading">
-                {uploadLabel || `Capture ${activeProtocolName || 'Movement'}`}
+                {uploadLabel || (activeProtocolName ? `Capture ${activeProtocolName}` : 'Record or Upload Movement Video')}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                Full-body framing • High contrast • 30–60 FPS
+                {activeProtocolName
+                  ? 'Full-body framing • High contrast • 30–60 FPS'
+                  : 'Auto-Detection Active: System will automatically detect movement kinematics (squat, jump, sprint, or technique).'}
               </p>
             </div>
 
@@ -272,7 +307,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
             <div className="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto pt-1">
               <button
                 type="button"
-                onClick={() => recordInputRef.current?.click()}
+                onClick={handleRecordClick}
                 disabled={isBusy}
                 className="flex-1 h-11 btn-primary text-xs flex items-center justify-center gap-2"
               >
@@ -282,7 +317,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
 
               <button
                 type="button"
-                onClick={() => chooseInputRef.current?.click()}
+                onClick={handleChooseClick}
                 disabled={isBusy}
                 className="flex-1 h-11 btn-secondary text-xs flex items-center justify-center gap-2"
               >
@@ -313,7 +348,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
             className="btn-primary w-full h-12 text-xs font-bold tracking-wide flex items-center justify-center gap-2"
           >
             <ZapIcon className="w-4 h-4 text-slate-950" />
-            <span>{analyzeButtonLabel || `Analyze ${activeProtocolName || 'Movement'}`}</span>
+            <span>{analyzeButtonLabel || `Analyze ${activeProtocolName || 'Movement (Auto-Detect)'}`}</span>
           </button>
         )
       )}
