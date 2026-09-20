@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 import os
 import bcrypt
 from datetime import datetime, timedelta
@@ -28,7 +28,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: Optional[str]) -> bool:
+    if not plain_password or not hashed_password:
+        return False
     try:
         return bcrypt.checkpw(
             plain_password.encode("utf-8")[:72],
@@ -78,7 +80,6 @@ async def get_current_athlete(
 @router.post("/send-otp", response_model=OTPResponse)
 async def send_otp(
     payload: SendOTPRequest,
-    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     clean_email = payload.email.strip().lower()
@@ -111,16 +112,20 @@ async def send_otp(
     code = otp_service.generate_code()
     await otp_service.store_otp(clean_email, payload.purpose, code)
 
-    # Dispatch email asynchronously in the background so the HTTP request returns instantly
-    background_tasks.add_task(email_service.send_otp, clean_email, code, payload.purpose)
+    # Dispatch email
+    dispatched = await email_service.send_otp(clean_email, code, payload.purpose)
 
     response_data = {
         "message": f"A 6-digit verification code has been dispatched to {clean_email}.",
         "cooldown_seconds": settings.OTP_COOLDOWN_SECONDS,
     }
     resend_key = (settings.RESEND_API_KEY or os.getenv("RESEND_API_KEY", "")).strip()
-    if not resend_key:
+    if not resend_key or not dispatched:
         response_data["dev_code"] = code
+        if not dispatched:
+            response_data["message"] = (
+                f"Verification code generated (sandbox email restricted). Code: {code}"
+            )
 
     return response_data
 
@@ -203,25 +208,41 @@ async def register(athlete: AthleteCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     login_data: Optional[AthleteLogin] = None,
-    form_data: Optional[OAuth2PasswordRequestForm] = Depends(lambda: None),
     db: AsyncSession = Depends(get_db),
 ):
-    # Support both JSON payload and Form data
     email = None
     password = None
 
+    # 1. Pydantic model directly
     if login_data and login_data.email:
         email = login_data.email
         password = login_data.password
-    elif form_data and form_data.username:
-        email = form_data.username
-        password = form_data.password
+
+    # 2. JSON Body fallback
+    if not email:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                email = body.get("email")
+                password = body.get("password")
+        except Exception:
+            pass
+
+    # 3. Form Data fallback (OAuth2 Swagger form)
+    if not email:
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except Exception:
+            pass
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password required")
 
-    clean_email = email.strip().lower()
+    clean_email = str(email).strip().lower()
     result = await db.execute(select(Athlete).filter(func.lower(Athlete.email) == clean_email))
     athlete = result.scalars().first()
     if not athlete or not verify_password(password, athlete.hashed_password):
@@ -234,3 +255,4 @@ async def login(
 @router.get("/me", response_model=AthleteResponse)
 async def read_users_me(current_athlete: Athlete = Depends(get_current_athlete)):
     return current_athlete
+

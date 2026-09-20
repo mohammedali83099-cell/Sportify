@@ -15,12 +15,26 @@ import {
   CheckIcon,
   ClockIcon,
   SportIcon,
+  PlusIcon,
+  CloseIcon,
 } from '../components/common/Icons';
 import {
   DashboardResponse,
   ProfileAttributeItem,
   TrainingPlan,
 } from '../types';
+
+const ALL_GOALS = [
+  'Improve acceleration',
+  'Build strength',
+  'Boost agility',
+  'Increase stamina',
+  'Better flexibility',
+  'Injury prevention',
+  'Improve technique',
+  'Lose weight',
+  'Gain muscle',
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -34,6 +48,48 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [currentPlan, setCurrentPlan] = useState<TrainingPlan | null>(null);
   const [activeTier, setActiveTier] = useState<string>('all');
+  const [showPicker, setShowPicker] = useState(false);
+  const [goals, setGoals] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (profile?.goals?.length) {
+      setGoals(profile.goals);
+    } else if (profile?.development_objectives?.length) {
+      setGoals(profile.development_objectives);
+    }
+  }, [profile]);
+
+  const addGoal = async (g: string) => {
+    if (goals.includes(g)) return;
+    const updated = [...goals, g];
+    setGoals(updated);
+    setShowPicker(false);
+    try {
+      const updatedProf = await intakeAPI.submitProfile({
+        goals: updated,
+        development_objectives: updated,
+      });
+      setProfile(updatedProf);
+    } catch (e) {
+      console.error('Failed to save goal:', e);
+    }
+  };
+
+  const removeGoal = async (g: string) => {
+    const updated = goals.filter((x) => x !== g);
+    setGoals(updated);
+    try {
+      const updatedProf = await intakeAPI.submitProfile({
+        goals: updated,
+        development_objectives: updated,
+      });
+      setProfile(updatedProf);
+    } catch (e) {
+      console.error('Failed to remove goal:', e);
+    }
+  };
+
+  const availableGoals = ALL_GOALS.filter((g) => !goals.includes(g));
 
   useEffect(() => {
     async function loadDashboard() {
@@ -238,18 +294,80 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Reassess Action (Only when assessment exists) */}
-        {hasAssessment && (
-          <div className="shrink-0 pt-0.5 sm:pt-0">
-            <Link
-              to={assessmentPath}
-              className="text-xs font-sans text-slate-300 hover:text-white px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] transition-colors inline-flex items-center gap-1.5"
-            >
-              <ZapIcon className="w-3.5 h-3.5 text-slate-400" />
-              <span>Reassess</span>
-            </Link>
+        {/* Goals Editor + Reassess Action */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
+          {/* Goals editor */}
+          <div className="rounded-xl p-3 w-full sm:w-auto sm:min-w-[280px] border border-white/[0.08] bg-white/[0.02] backdrop-blur-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-widest font-mono">
+                My Goals
+              </span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPicker((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                >
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  <span>Edit goals</span>
+                </button>
+                {showPicker && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+                    <div className="absolute right-0 top-6 z-50 rounded-xl p-2 min-w-[200px] space-y-0.5 bg-[#0C0E14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
+                      {availableGoals.map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => addGoal(g)}
+                          className="block w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white transition-colors"
+                        >
+                          {g}
+                        </button>
+                      ))}
+                      {availableGoals.length === 0 && (
+                        <p className="text-xs text-white/40 px-3 py-2">All goals added!</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {goals.map((g) => (
+                <span
+                  key={g}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                >
+                  <span>{g}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeGoal(g)}
+                    className="hover:text-red-400 text-slate-400 transition-colors ml-0.5 text-xs font-bold leading-none"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+              {goals.length === 0 && (
+                <span className="text-xs text-white/40">No goals yet — add some above &uarr;</span>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Reassess Action (Only when assessment exists) */}
+          {hasAssessment && (
+            <div className="shrink-0 pt-0.5 sm:pt-0">
+              <Link
+                to={assessmentPath}
+                className="text-xs font-sans text-slate-300 hover:text-white px-3.5 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] transition-colors inline-flex items-center gap-1.5"
+              >
+                <ZapIcon className="w-3.5 h-3.5 text-slate-400" />
+                <span>Reassess</span>
+              </Link>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* ── 2. ATHLETE DEVELOPMENT PATHWAY (Where Am I In My Development?) ─── */}

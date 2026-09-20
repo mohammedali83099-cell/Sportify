@@ -126,11 +126,24 @@ class EmailService:
                         error_msg = f"Resend API rejected dispatch (HTTP {response.status_code}): {response.text}"
                         logger.error(error_msg)
                         print(f"\n[RESEND ERROR] {error_msg}\n", flush=True)
+                        # Resend rejected dispatch (e.g. sandbox restriction)
+                        # Print to dev console for local development and return False
+                        print(
+                            "\n" + "=" * 62 + "\n"
+                            " [SPORTIFY AUTH OTP DISPATCHER - LOCAL DEV CONSOLE]\n"
+                            f" Target Email : {to_email}\n"
+                            f" Purpose      : {purpose.upper()}\n"
+                            f" >>> 6-DIGIT OTP CODE : {otp_code} <<< (Valid for {settings.OTP_EXPIRE_MINUTES} min)\n"
+                            + "=" * 62 + "\n",
+                            flush=True,
+                        )
+                        return False
             except Exception as e:
                 logger.error(f"Failed to dispatch email via Resend API: {e}")
                 print(f"\n[RESEND EXCEPTION] {e}\n", flush=True)
+                return False
 
-        # Local development / fallback terminal display
+        # Local development / fallback terminal display (when no resend key configured)
         print(
             "\n" + "=" * 62 + "\n"
             " [SPORTIFY AUTH OTP DISPATCHER - LOCAL DEV CONSOLE]\n"
@@ -141,7 +154,7 @@ class EmailService:
             flush=True,
         )
         logger.info(f"[DEV CONSOLE] OTP for {to_email}: {otp_code}")
-        return True
+        return False
 
 
 email_service = EmailService()

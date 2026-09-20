@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_VIDEO_SIZE_MB: int = 100
 
+    @property
+    def normalized_database_url(self) -> str:
+        url = self.DATABASE_URL
+        if "sslmode=" in url:
+            url = url.replace("sslmode=", "ssl=")
+        return url
+
     class Config:
         env_file = ".env"
         extra = "ignore"

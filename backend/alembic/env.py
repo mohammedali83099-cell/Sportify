@@ -46,8 +46,9 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     # Create engine directly from settings — avoids configparser % interpolation issues
+    db_url = getattr(settings, "normalized_database_url", settings.DATABASE_URL)
     connectable = create_async_engine(
-        settings.DATABASE_URL,
+        db_url,
         poolclass=pool.NullPool,
     )
     async with connectable.connect() as connection:

@@ -135,3 +135,5 @@ tmp/
 temp/
 .agents/
 .gemini/
+backend/.otp_cache.json
+*.cache.json

@@ -1,10 +1,13 @@
 import secrets
 import time
+import json
+import os
 import logging
 from typing import Tuple, Optional, Dict, Any
 from config import settings
 
 logger = logging.getLogger("sportify.otp")
+_OTP_CACHE_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".otp_cache.json")
 
 # Optional Redis support
 try:
@@ -17,12 +20,37 @@ class OTPService:
     """
     High-performance, secure OTP storage and verification engine.
     Supports native Redis with automatic TTL and rate-limiting.
-    Seamlessly falls back to an in-memory TTL dictionary for zero-setup local dev.
+    Seamlessly falls back to an in-memory/file-persisted TTL store for zero-setup local dev.
     """
 
     def __init__(self):
         self._redis_client = None
         self._memory_store: Dict[str, Dict[str, Any]] = {}
+        self._load_cache()
+
+    def _load_cache(self):
+        try:
+            if os.path.exists(_OTP_CACHE_FILE):
+                with open(_OTP_CACHE_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    now = time.time()
+                    # Filter out expired keys on load
+                    self._memory_store = {
+                        k: v for k, v in data.items() if v.get("expires_at", 0) > now
+                    }
+        except Exception:
+            self._memory_store = {}
+
+    def _save_cache(self):
+        try:
+            now = time.time()
+            valid_store = {
+                k: v for k, v in self._memory_store.items() if v.get("expires_at", 0) > now
+            }
+            with open(_OTP_CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(valid_store, f)
+        except Exception:
+            pass
 
     async def _get_redis(self):
         if settings.REDIS_URL and aioredis:
@@ -97,6 +125,7 @@ class OTPService:
             "created_at": now,
             "expires_at": now + ttl,
         }
+        self._save_cache()
 
     async def verify_otp(self, email: str, purpose: str, candidate_code: str) -> Tuple[bool, str]:
         """
@@ -136,6 +165,7 @@ class OTPService:
         record = self._memory_store.get(key)
         if not record or now > record["expires_at"]:
             self._memory_store.pop(key, None)
+            self._save_cache()
             return False, "Verification code has expired or was not requested. Please request a new code."
 
         actual_code = record["code"]
@@ -144,12 +174,15 @@ class OTPService:
         if secrets.compare_digest(actual_code, candidate):
             # Valid OTP - consume immediately (one-time use)
             self._memory_store.pop(key, None)
+            self._save_cache()
             return True, "Verification successful."
 
         if record["attempts"] >= max_attempts:
             self._memory_store.pop(key, None)
+            self._save_cache()
             return False, "Too many failed attempts. This code is now invalid. Please request a new one."
 
+        self._save_cache()
         remaining = max_attempts - record["attempts"]
         return False, f"Incorrect verification code. {remaining} attempt(s) remaining."
 

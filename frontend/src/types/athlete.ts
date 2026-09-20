@@ -28,6 +28,8 @@ export interface AthleteProfile {
   session_duration_minutes?: number | null;
   primary_objective?: string | null;
   secondary_objectives?: string[] | null;
+  goals?: string[] | null;
+  development_objectives?: string[] | null;
   created_at?: string;
   updated_at?: string;
 }
