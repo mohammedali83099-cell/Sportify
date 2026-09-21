@@ -6,13 +6,22 @@ Sportify is an intelligent, full-stack athlete development platform that pairs *
 
 ---
 
+## 🚀 Live Deployments
+
+- **Web Application (Vercel)**: [https://sportify-3dzr.vercel.app](https://sportify-3dzr.vercel.app)
+- **Backend API (Railway)**: [https://sportify-production-f432.up.railway.app](https://sportify-production-f432.up.railway.app)
+- **API Documentation**: [https://sportify-production-f432.up.railway.app/docs](https://sportify-production-f432.up.railway.app/docs)
+- **Health Check**: [https://sportify-production-f432.up.railway.app/health](https://sportify-production-f432.up.railway.app/health)
+
+---
+
 ## What It Does
 
 | Capability | Technical Overview |
 |------------|---------------------|
 | **Role-Aware Assessment** | Granular sport, position, and sub-role taxonomy. Calibrates evaluation criteria depending on whether the athlete is an *Opening Batsman*, *Fast Bowler*, *Football Striker*, *Point Guard*, or *Sprinter*. |
-| **Activity-Aware Computer Vision** | Evaluates specialized athletic movement through **Google MediaPipe Tasks PoseLandmarker** (33 3D anatomical landmarks) and OpenCV kinematic vector math. |
-| **Calibrated Quality Gate** | Multi-phase validation gate ensuring video clarity, framing angle, and joint tracking with a 70% landmark coverage baseline, 0.35 confidence threshold, high-FPS downsampling, and sub-second explosive movement detection. |
+| **Dual-Tier Computer Vision** | Primary biomechanical pose tracking via **Google MediaPipe Tasks PoseLandmarker** (33 3D anatomical landmarks, pre-baked into container image) with an automated **OpenCV motion-dynamics fallback** ensuring 100% assessment availability across all runtime environments. |
+| **Optimized Quality Gate** | Multi-phase validation gate ensuring video clarity, framing angle, and joint tracking with a 70% landmark coverage baseline, 0.35 confidence threshold, 15 FPS adaptive downsampling, 480px frame scaling, and a 60-frame kinematic analysis window (~4s movement execution). |
 | **Biomechanical Radar Profiling** | Dynamic precision SVG spider chart comparing measured kinematic performance against sport and position benchmarks across stability, mobility, symmetry, posture, explosive capacity, and balance. |
 | **Bottleneck Diagnostic Engine** | Algorithmic gap analysis weighting raw kinematic deviations against position demands to categorize performance into *Strengths*, *Proficient*, *Development Areas*, and *Critical Bottlenecks*. |
 | **AI Periodized Training & Recovery** | Powered by **Google Gemini 3.6 Flash**, synthesizing structured 4-week training regimens, corrective exercises from a curated 100+ exercise library, and targeted recovery protocols. |
@@ -181,6 +190,7 @@ Sportify/
 | `POST` | `/auth/verify-otp` | Verify OTP and issue JWT access token for registration or login |
 | `POST` | `/auth/register` | Direct registration with email, password, and full name |
 | `POST` | `/auth/login` | Authenticate athlete and return JWT bearer token |
+| `POST` | `/auth/reset-password-pin` | Reset forgotten password using athlete's secure 6-digit PIN |
 | `GET` | `/auth/me` | Fetch authenticated athlete profile |
 | `GET` | `/intake/sports` | List sports taxonomy, roles, and disciplines |
 | `POST` | `/intake/profile` | Submit athlete role and baseline physical parameters |
@@ -199,3 +209,27 @@ Sportify/
 | `GET` | `/progress/logs` | Retrieve chronological training session logs |
 | `GET` | `/progress/reassessment`| Calculate trajectory and reassessment delta |
 | `GET` | `/health` | Server health check endpoint |
+
+---
+
+## Environment Configuration
+
+### Frontend (`frontend/.env` / Vercel Environment Variables)
+
+```bash
+VITE_API_BASE_URL=https://sportify-production-f432.up.railway.app
+```
+
+> **Note:** The client automatically normalizes protocol schemes, so `sportify-production-f432.up.railway.app` or `https://sportify-production-f432.up.railway.app` are both safely resolved.
+
+### Backend (`backend/.env` / Railway Environment Variables)
+
+```bash
+DATABASE_URL=postgresql+asyncpg://<user>:<password>@<host>:<port>/<database>
+SECRET_KEY=your-jwt-secret-key
+GEMINI_API_KEY=your-gemini-api-key
+RESEND_API_KEY=your-resend-api-key          # Optional: dark-mode HTML emails (falls back to console)
+REDIS_URL=redis://<host>:<port>             # Optional: falls back to in-memory TTL dictionary
+UPLOAD_DIR=uploads
+PORT=8000
+```
