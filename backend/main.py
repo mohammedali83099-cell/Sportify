@@ -17,6 +17,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[WARN] Could not initialize database tables at startup: {e}")
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+
+    # Pre-warm MediaPipe pose detector at startup
+    try:
+        from services.pose_detector import get_pose_detector
+        detector = get_pose_detector()
+        if detector:
+            print("[INFO] MediaPipe pose detector pre-warmed successfully.")
+        else:
+            print("[WARN] MediaPipe pose detector could not be pre-warmed at startup.")
+    except Exception as e:
+        print(f"[WARN] Failed to pre-warm MediaPipe pose detector: {e}")
+
     yield
 
 app = FastAPI(lifespan=lifespan, title="Athlete Development Platform")
