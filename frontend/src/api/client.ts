@@ -14,9 +14,12 @@ import {
   SportTaxonomy,
 } from '../types';
 
+const rawBaseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
+
 const apiClient: AxiosInstance = axios.create({
-  baseURL: '/api',
-  timeout: 15000,
+  baseURL,
+  timeout: 60000,
 });
 
 // Request Interceptor: Attach Token

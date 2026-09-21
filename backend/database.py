@@ -4,13 +4,14 @@ from sqlalchemy import text
 from config import settings
 
 connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if settings.normalized_database_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.normalized_database_url,
     echo=False,
     connect_args=connect_args,
+    pool_pre_ping=True,
 )
 
 AsyncSessionLocal = sessionmaker(
@@ -33,7 +34,7 @@ async def create_all_tables():
         await conn.run_sync(Base.metadata.create_all)
 
         # Safe migration for sqlite to ensure new columns exist
-        if settings.DATABASE_URL.startswith("sqlite"):
+        if settings.normalized_database_url.startswith("sqlite"):
             tables_to_columns = {
                 "athletes": [
                     ("is_verified", "BOOLEAN DEFAULT 0"),
