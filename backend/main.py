@@ -11,7 +11,11 @@ from config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_all_tables()
+    try:
+        await create_all_tables()
+        print("[INFO] Database tables verified/created successfully.")
+    except Exception as e:
+        print(f"[WARN] Could not initialize database tables at startup: {e}")
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     yield
 
