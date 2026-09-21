@@ -31,10 +31,25 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// Response Interceptor: Pass-through (no auth redirects)
+// Response Interceptor: Handles 401 Unauthorized cleanly without breaking auth forms
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    if (error?.response?.status === 401) {
+      const url = error.config?.url || '';
+      const isAuthRoute =
+        url.includes('/auth/login') ||
+        url.includes('/auth/verify-otp') ||
+        url.includes('/auth/send-otp');
+      if (!isAuthRoute) {
+        const store = useAthleteStore.getState();
+        if (store.token || store.isAuthenticated) {
+          store.logout();
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 /**

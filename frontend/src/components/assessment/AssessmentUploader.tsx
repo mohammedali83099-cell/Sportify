@@ -37,6 +37,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
   const setAssessment = useAthleteStore((state) => state.setAssessment);
   const setBottlenecks = useAthleteStore((state) => state.setBottlenecks);
   const profile = useAthleteStore((state) => state.profile);
+  const athlete = useAthleteStore((state) => state.athlete);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -107,6 +108,7 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
 
       if (profile) {
         const athleteContext = {
+          athlete_id: athlete?.id || profile.athlete_id || (profile as any).id,
           sport: profile.sport || sportKey,
           role: profile.primary_role || primaryRole,
           sub_role: profile.sub_role || subRole,

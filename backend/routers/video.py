@@ -1,12 +1,20 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException, Form, Header
 from typing import Optional, Dict, Any, List
 import os
 import shutil
 import uuid
 import json
 
+from sqlalchemy.future import select
+from sqlalchemy import func
+from jose import jwt
+
+from database import AsyncSessionLocal
+from models.athlete import Athlete
+from models.assessment import MovementAssessment, BottleneckReport
 from services.pose_analyzer import PoseAnalyzer
 from services.movement.registry import protocol_registry
+from services.bottleneck_engine import bottleneck_engine
 from config import settings
 
 router = APIRouter(prefix="/video", tags=["video"])
@@ -15,7 +23,7 @@ router = APIRouter(prefix="/video", tags=["video"])
 coaching_jobs: Dict[str, Dict[str, Any]] = {}
 
 
-def _run_coaching_job(
+async def _run_coaching_job(
     job_id: str,
     video_path: str,
     sport: str,
@@ -23,12 +31,14 @@ def _run_coaching_job(
     sub_role: Optional[str] = None,
     protocol_id: Optional[str] = None,
     athlete_context: Optional[Dict[str, Any]] = None,
+    athlete_id: Optional[int] = None,
 ):
     """
     Background worker:
     1. Runs activity-aware VideoQualityGate + specific MovementProtocol.
     2. If valid, generates evidence-grounded coaching advice using athlete context.
-    3. If invalid/failed, records explicit failure status without fabricating fake metrics.
+    3. Persists MovementAssessment and BottleneckReport to PostgreSQL when athlete_id is present.
+    4. If invalid/failed, records explicit failure status without fabricating fake metrics.
     """
     try:
         analyzer = PoseAnalyzer()
@@ -73,9 +83,52 @@ def _run_coaching_job(
             athlete_context=ctx,
         )
 
+        # 4-tier development profile & bottlenecks evaluation
+        eval_result = bottleneck_engine.evaluate_development_profile(
+            ctx, movement_scores
+        )
+        bottlenecks = eval_result.get("bottlenecks", [])
+
+        # Persist to database if athlete_id is available
+        assessment_db_id = None
+        if athlete_id:
+            try:
+                async with AsyncSessionLocal() as db:
+                    assessment = MovementAssessment(
+                        athlete_id=athlete_id,
+                        protocol_id=analysis_result.get("protocol_id") or protocol_id,
+                        video_filename=os.path.basename(video_path),
+                        video_path=video_path,
+                        status="completed",
+                        overall_movement_quality=analysis_result.get("overall_movement_quality"),
+                        movement_scores=movement_scores,
+                        metric_details=metric_details,
+                        movement_feedback=analysis_result.get("movement_feedback"),
+                        quality_report=analysis_result.get("quality_report"),
+                    )
+                    db.add(assessment)
+                    await db.flush()
+                    assessment_db_id = assessment.id
+
+                    report = BottleneckReport(
+                        athlete_id=athlete_id,
+                        assessment_id=assessment.id,
+                        bottlenecks=bottlenecks,
+                        strengths=eval_result.get("strengths", []),
+                        proficient=eval_result.get("proficient", []),
+                        development_areas=eval_result.get("development_areas", []),
+                        critical_bottlenecks=eval_result.get("critical_bottlenecks", []),
+                    )
+                    db.add(report)
+                    await db.commit()
+            except Exception as db_err:
+                print(f"[WARN] Failed to persist assessment to database: {db_err}")
+
         coaching_jobs[job_id] = {
             "status": "completed",
             "is_valid": True,
+            "id": assessment_db_id,
+            "athlete_id": athlete_id,
             "sport": sport,
             "role": role,
             "sub_role": sub_role,
@@ -88,6 +141,8 @@ def _run_coaching_job(
             "movement_feedback": analysis_result.get("movement_feedback"),
             "quality_report": analysis_result.get("quality_report"),
             "coaching": coaching,
+            "bottlenecks": bottlenecks,
+            "development_profile": eval_result,
         }
 
     except Exception as e:
@@ -118,6 +173,7 @@ async def coach_video(
     protocol: Optional[str] = Form(default=None),
     activity: Optional[str] = Form(default=None),
     athlete_context: Optional[str] = Form(default=None),
+    authorization: Optional[str] = Header(default=None),
 ):
     """
     Upload an activity video for biomechanical analysis and evidence-grounded coaching.
@@ -142,6 +198,30 @@ async def coach_video(
         except Exception:
             context_dict = None
 
+    # Resolve athlete_id from context or Bearer authorization header
+    athlete_id = None
+    if context_dict and context_dict.get("athlete_id"):
+        try:
+            athlete_id = int(context_dict["athlete_id"])
+        except (ValueError, TypeError):
+            pass
+
+    if not athlete_id and authorization and authorization.startswith("Bearer "):
+        try:
+            token = authorization.split(" ", 1)[1]
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            email = payload.get("sub")
+            if email:
+                async with AsyncSessionLocal() as db:
+                    res = await db.execute(
+                        select(Athlete).filter(func.lower(Athlete.email) == email.strip().lower())
+                    )
+                    ath = res.scalars().first()
+                    if ath:
+                        athlete_id = ath.id
+        except Exception:
+            pass
+
     video_path = os.path.join(settings.UPLOAD_DIR, f"{job_id}.{ext}")
     with open(video_path, "wb") as f:
         shutil.copyfileobj(video.file, f)
@@ -157,6 +237,7 @@ async def coach_video(
         sub_role.lower().replace(" ", "_") if sub_role else None,
         selected_protocol,
         context_dict,
+        athlete_id,
     )
 
     return {
