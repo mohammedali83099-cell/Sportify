@@ -246,24 +246,24 @@ export default function Dashboard() {
   return (
     <div className="space-y-4 sm:space-y-5 select-none pb-8 max-w-4xl mx-auto">
       {/* ── 1. ATHLETE OVERVIEW (Who Am I?) ─────────────────────────────────── */}
-      <header className="pt-1 pb-3.5 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      <header className="pt-1 pb-4 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-semibold">
               Athlete Command
             </span>
             <span className="text-slate-700 text-xs">/</span>
-            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
               <span>{sportTitle}</span>
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-tight leading-none">
-            {athleteName}
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-tight leading-tight">
+            Welcome back, {athleteName}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-2 text-xs text-slate-400 font-sans">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1.5 text-xs text-slate-400 font-sans">
             <span className="font-semibold text-slate-200">
               {roleTitle}
             </span>
@@ -293,81 +293,73 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Goals Editor + Reassess Action */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
-          {/* Goals editor */}
-          <div className="rounded-xl p-3 w-full sm:w-auto sm:min-w-[280px] border border-white/[0.08] bg-white/[0.02] backdrop-blur-md">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-widest font-mono">
-                My Goals
-              </span>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowPicker((v) => !v)}
-                  className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-                >
-                  <PlusIcon className="w-3.5 h-3.5" />
-                  <span>Edit goals</span>
-                </button>
-                {showPicker && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
-                    <div className="absolute right-0 top-6 z-50 rounded-xl p-2 min-w-[200px] space-y-0.5 bg-[#0C0E14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
-                      {availableGoals.map((g) => (
-                        <button
-                          key={g}
-                          type="button"
-                          onClick={() => addGoal(g)}
-                          className="block w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white transition-colors"
-                        >
-                          {g}
-                        </button>
-                      ))}
-                      {availableGoals.length === 0 && (
-                        <p className="text-xs text-white/40 px-3 py-2">All goals added!</p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {goals.map((g) => (
-                <span
-                  key={g}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
-                >
-                  <span>{g}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeGoal(g)}
-                    className="hover:text-red-400 text-slate-400 transition-colors ml-0.5 text-xs font-bold leading-none"
-                  >
-                    &times;
-                  </button>
-                </span>
-              ))}
-              {goals.length === 0 && (
-                <span className="text-xs text-white/40">No goals yet — add some above &uarr;</span>
-              )}
-            </div>
-          </div>
-
-          {/* Reassess Action (Only when assessment exists) */}
-          {hasAssessment && (
-            <div className="shrink-0 pt-0.5 sm:pt-0">
-              <Link
-                to={assessmentPath}
-                className="text-xs font-sans text-slate-300 hover:text-white px-3.5 py-2 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] transition-colors inline-flex items-center gap-1.5"
-              >
-                <ZapIcon className="w-3.5 h-3.5 text-slate-400" />
-                <span>Reassess</span>
-              </Link>
-            </div>
-          )}
+        {/* Quick Action */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            to={assessmentPath}
+            className="text-xs font-sans font-semibold text-white px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all inline-flex items-center gap-2 shadow-sm"
+          >
+            <ZapIcon className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{hasAssessment ? 'Reassess Movement' : 'Start Assessment'}</span>
+          </Link>
         </div>
       </header>
+
+      {/* ── 2. CORE ATHLETIC TELEMETRY (Performance at a Glance) ─────────────── */}
+      <section aria-label="Athletic Telemetry" className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        {/* Streak */}
+        <div className="rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.015] border border-white/[0.07] p-4 shadow-sm hover:border-white/15 transition-all">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-sans font-medium text-slate-300">Streak</span>
+            <FlameIcon className="w-4 h-4 text-amber-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">
+            {trainingStats.streak_days || 0}
+            <span className="text-xs font-sans font-normal text-slate-500 ml-1">d</span>
+          </p>
+          <span className="text-[10px] font-mono text-slate-500 block mt-1">Active cadence</span>
+        </div>
+
+        {/* Sessions */}
+        <div className="rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.015] border border-white/[0.07] p-4 shadow-sm hover:border-white/15 transition-all">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-sans font-medium text-slate-300">Sessions</span>
+            <CalendarIcon className="w-4 h-4 text-sky-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">
+            {trainingStats.total_sessions || 0}
+          </p>
+          <span className="text-[10px] font-mono text-slate-500 block mt-1">Completed cycles</span>
+        </div>
+
+        {/* Avg RPE */}
+        <div className="rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.015] border border-white/[0.07] p-4 shadow-sm hover:border-white/15 transition-all">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-sans font-medium text-slate-300">Avg RPE</span>
+            <TargetIcon className="w-4 h-4 text-rose-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">
+            {trainingStats.avg_rpe ? trainingStats.avg_rpe.toFixed(1) : '0.0'}
+            <span className="text-xs font-sans font-normal text-slate-500 ml-1">/10</span>
+          </p>
+          <span className="text-[10px] font-mono text-slate-500 block mt-1">Training intensity</span>
+        </div>
+
+        {/* Readiness */}
+        <div className="rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.015] border border-white/[0.07] p-4 shadow-sm hover:border-white/15 transition-all">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-sans font-medium text-slate-300">Readiness</span>
+            <ShieldIcon className="w-4 h-4 text-emerald-400" />
+          </div>
+          <p
+            className="text-sm sm:text-base font-bold font-sans text-emerald-400 truncate mt-1.5"
+            title={recovery?.load_context?.strain_status || 'Optimal Adaptation'}
+          >
+            {recovery?.load_context?.strain_status || 'Optimal Adaptation'}
+          </p>
+          <span className="text-[10px] font-mono text-slate-500 block mt-1">Recovery state</span>
+        </div>
+      </section>
 
       {/* ── 2. ATHLETE DEVELOPMENT PATHWAY (Where Am I In My Development?) ─── */}
       <section aria-label="Athlete Development Pathway" className="rounded-xl bg-white/[0.015] backdrop-blur-sm border border-white/[0.06] p-3 sm:p-4 space-y-2.5">
@@ -593,77 +585,28 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Right Column: Abstract Kinematic / Motion-Tracking Graphic */}
+            {/* Right Column: Visual Telemetry Card */}
             <div
               aria-hidden="true"
-              className="relative w-full md:w-60 h-44 md:h-48 shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-white/[0.012] border border-white/[0.05] p-2"
+              className="relative w-full md:w-56 h-36 md:h-44 shrink-0 flex flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.08] p-4"
             >
-              <svg
-                viewBox="0 0 220 180"
-                className="w-full h-full select-none pointer-events-none"
-                fill="none"
-              >
-                {/* 1. Technical Grid & Axis Crosshairs */}
-                <g stroke="white" strokeOpacity="0.035" strokeWidth="0.75">
-                  <line x1="20" y1="45" x2="200" y2="45" strokeDasharray="3 4" />
-                  <line x1="20" y1="90" x2="200" y2="90" />
-                  <line x1="20" y1="135" x2="200" y2="135" strokeDasharray="3 4" />
-                  <line x1="55" y1="15" x2="55" y2="165" strokeDasharray="3 4" />
-                  <line x1="110" y1="15" x2="110" y2="165" />
-                  <line x1="165" y1="15" x2="165" y2="165" strokeDasharray="3 4" />
-                </g>
-
-                {/* Corner Alignment Ticks */}
-                <g stroke="white" strokeOpacity="0.1" strokeWidth="0.75">
-                  <path d="M22 22 h6 M22 22 v6" />
-                  <path d="M198 22 h-6 M198 22 v6" />
-                  <path d="M22 158 h6 M22 158 v-6" />
-                  <path d="M198 158 h-6 M198 158 v-6" />
-                </g>
-
-                {/* 2. Circular Calibration Rings */}
-                <circle cx="110" cy="90" r="62" stroke="white" strokeOpacity="0.04" strokeWidth="0.75" />
-                <circle cx="110" cy="90" r="42" stroke="white" strokeOpacity="0.07" strokeWidth="0.75" strokeDasharray="3 4" />
-                <circle cx="110" cy="90" r="22" stroke="white" strokeOpacity="0.05" strokeWidth="0.75" />
-
-                {/* Coordinate Axis Dots */}
-                <circle cx="110" cy="28" r="1" fill="white" fillOpacity="0.25" />
-                <circle cx="110" cy="152" r="1" fill="white" fillOpacity="0.25" />
-                <circle cx="48" cy="90" r="1" fill="white" fillOpacity="0.25" />
-                <circle cx="172" cy="90" r="1" fill="white" fillOpacity="0.25" />
-
-                {/* 3. Simple Trajectory Lines & Motion Nodes */}
-                <line
-                  x1="110"
-                  y1="82"
-                  x2="136"
-                  y2="58"
-                  stroke="#34D399"
-                  strokeOpacity="0.25"
-                  strokeWidth="0.75"
-                  strokeDasharray="2 3"
-                />
-
-                {/* Primary Motion Path */}
-                <path
-                  d="M58 136 L86 106 L110 82 L152 46"
-                  stroke="white"
-                  strokeOpacity="0.32"
-                  strokeWidth="1.25"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-
-                {/* Connected Motion Nodes */}
-                <circle cx="58" cy="136" r="2.5" fill="#0A0C13" stroke="white" strokeOpacity="0.35" strokeWidth="1" />
-                <circle cx="86" cy="106" r="3" fill="#0A0C13" stroke="white" strokeOpacity="0.45" strokeWidth="1" />
-                
-                {/* Focal Node with Subtle Sportify Accent */}
-                <circle cx="110" cy="82" r="5" fill="#34D399" fillOpacity="0.1" stroke="#34D399" strokeOpacity="0.55" strokeWidth="1.25" />
-                <circle cx="110" cy="82" r="1.5" fill="#34D399" fillOpacity="0.9" />
-
-                <circle cx="152" cy="46" r="2.5" fill="#0A0C13" stroke="white" strokeOpacity="0.35" strokeWidth="1" />
-              </svg>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest font-semibold">
+                  Kinematic AI
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-mono text-slate-300">
+                  Full-Body Tracking
+                </p>
+                <p className="text-[10px] text-slate-500 leading-tight">
+                  Evaluates 33 anatomical landmarks, joint kinetic load, and balance sequencing.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                <span className="text-[10px] font-mono text-slate-400">Zero Hardware Needed</span>
+              </div>
             </div>
           </div>
         )}
@@ -782,57 +725,70 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* ── 5. SECONDARY TELEMETRY STRIP ─────────────────────────────────────── */}
-      <section aria-label="Training Telemetry" className="w-full">
-        <div className="grid grid-cols-4 divide-x divide-white/[0.05] rounded-xl bg-white/[0.015] backdrop-blur-sm border border-white/[0.05] p-2 sm:p-2.5">
-          {/* Streak */}
-          <div className="px-1.5 sm:px-3 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 text-[10px] sm:text-[11px] font-sans">
-              <FlameIcon className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="truncate">Streak</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold font-mono text-white mt-0.5">
-              {trainingStats.streak_days || 0}
-              <span className="text-[10px] font-sans font-normal text-slate-500 ml-0.5">d</span>
-            </p>
+      {/* ── 5. MY DEVELOPMENT GOALS (Target Milestones) ────────────────────── */}
+      <section aria-label="Development Goals" className="rounded-xl bg-white/[0.015] backdrop-blur-sm border border-white/[0.06] p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300">
+              MY DEVELOPMENT GOALS
+            </span>
+            <span className="text-xs text-slate-500 font-mono">({goals.length})</span>
           </div>
 
-          {/* Sessions */}
-          <div className="px-1.5 sm:px-3 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 text-[10px] sm:text-[11px] font-sans">
-              <CalendarIcon className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="truncate">Sessions</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold font-mono text-white mt-0.5">
-              {trainingStats.total_sessions || 0}
-            </p>
-          </div>
-
-          {/* Avg RPE */}
-          <div className="px-1.5 sm:px-3 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 text-[10px] sm:text-[11px] font-sans">
-              <TargetIcon className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="truncate">Avg RPE</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold font-mono text-white mt-0.5">
-              {trainingStats.avg_rpe ? trainingStats.avg_rpe.toFixed(1) : '0.0'}
-              <span className="text-[10px] font-sans font-normal text-slate-500 ml-0.5">/10</span>
-            </p>
-          </div>
-
-          {/* Readiness */}
-          <div className="px-1.5 sm:px-3 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-1 text-slate-400 text-[10px] sm:text-[11px] font-sans">
-              <ShieldIcon className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="truncate">Readiness</span>
-            </div>
-            <p
-              className="text-xs sm:text-sm font-semibold font-sans text-slate-200 truncate mt-0.5"
-              title={recovery?.load_context?.strain_status || 'Optimal'}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowPicker((v) => !v)}
+              className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-semibold transition-colors px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20"
             >
-              {recovery?.load_context?.strain_status || 'Optimal'}
-            </p>
+              <PlusIcon className="w-3.5 h-3.5" />
+              <span>Add Goal</span>
+            </button>
+            {showPicker && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+                <div className="absolute right-0 top-8 z-50 rounded-xl p-2 min-w-[220px] space-y-0.5 bg-[#0C0E14]/95 backdrop-blur-2xl border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
+                  {availableGoals.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => addGoal(g)}
+                      className="block w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-white/[0.08] text-white/70 hover:text-white transition-colors"
+                    >
+                      {g}
+                    </button>
+                  ))}
+                  {availableGoals.length === 0 && (
+                    <p className="text-xs text-white/40 px-3 py-2">All goals selected</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {goals.map((g) => (
+            <span
+              key={g}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/25"
+            >
+              <span>{g}</span>
+              <button
+                type="button"
+                onClick={() => removeGoal(g)}
+                className="hover:text-rose-400 text-slate-400 transition-colors ml-0.5 text-sm font-bold leading-none"
+                title="Remove goal"
+              >
+                &times;
+              </button>
+            </span>
+          ))}
+          {goals.length === 0 && (
+            <p className="text-xs text-slate-500 font-sans py-1">
+              No custom goals added yet. Click &ldquo;Add Goal&rdquo; above to track specific biomechanical milestones.
+            </p>
+          )}
         </div>
       </section>
 

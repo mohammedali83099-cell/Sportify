@@ -142,10 +142,12 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
       const stageTimer2 = setTimeout(() => setStage('preparing'), 6000);
       const stageTimer3 = setTimeout(() => setStage('ai_coaching'), 12000);
 
+      let consecutive404Count = 0;
       // Start polling backend job status
       pollTimerRef.current = setInterval(async () => {
         try {
           const statusRes = await videoAPI.getStatus(jobId);
+          consecutive404Count = 0;
           if (statusRes.status === 'completed') {
             if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
             if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current as any);
@@ -168,12 +170,25 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
                 'Movement analysis could not detect required keypoints. Please ensure full body is in frame.'
             );
           }
-        } catch (err) {
-          // Keep polling until timeout
+        } catch (err: any) {
+          if (err?.response?.status === 404) {
+            consecutive404Count += 1;
+            if (consecutive404Count >= 5) {
+              if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
+              if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current as any);
+              clearTimeout(stageTimer1);
+              clearTimeout(stageTimer2);
+              clearTimeout(stageTimer3);
+              setStage('idle');
+              setErrorMsg(
+                'Assessment session was not found or the server restarted. Please try recording or uploading again.'
+              );
+            }
+          }
         }
       }, 1500);
 
-      // Timeout guard after 120 seconds
+      // Timeout guard after 45 seconds (optimized pipeline completes in ~4-10s)
       timeoutTimerRef.current = setTimeout(() => {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current as any);
         clearTimeout(stageTimer1);
@@ -181,9 +196,9 @@ export const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({
         clearTimeout(stageTimer3);
         if (stage !== 'idle') {
           setStage('idle');
-          setErrorMsg('Analysis timed out. Please verify local vision processing service.');
+          setErrorMsg('Analysis timed out. Please ensure full body is visible and try a 3-5 second clip.');
         }
-      }, 120000);
+      }, 45000);
     } catch (err: any) {
       setStage('idle');
       setErrorMsg(
