@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAthleteStore } from '../../store/athleteStore';
 import { normalizeSport } from '../../config/sportAssessmentConfig';
 import SportifyLogo from '../common/SportifyLogo';
-import { SportIcon, LogoutIcon, ZapIcon } from '../common/Icons';
+import { LogoutIcon, ZapIcon } from '../common/Icons';
 
 export const MobileTopBar: React.FC = () => {
   const location = useLocation();
@@ -51,7 +51,7 @@ export const MobileTopBar: React.FC = () => {
           {/* Sport & Role Context Badge */}
           {profile?.sport && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-slate-200 text-xs font-sans min-w-0 max-w-[220px] sm:max-w-xs">
-              <SportIcon sport={profile.sport} className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
               <span className="truncate font-medium">{roleTitle}</span>
             </div>
           )}

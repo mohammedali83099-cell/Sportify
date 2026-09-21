@@ -109,12 +109,12 @@ export const CricketIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
     strokeLinejoin="round"
     className={className}
   >
-    <path d="M19 2.5l-4.5 4.5" />
-    <path d="M17.5 2l2 2" />
-    <path d="M14 7.5l-7.5 7.5c-.6.6-1 1.4-.9 2.2l.4 2.3 2.3.4c.8.1 1.6-.3 2.2-.9l7.5-7.5-4-4z" />
-    <line x1="12.5" y1="9" x2="8.5" y2="13" />
+    <line x1="16" y1="7" x2="20" y2="3" />
+    <line x1="17.5" y1="3.5" x2="19.5" y2="5.5" />
+    <path d="M13.5 6.5L6.5 13.5c-.8.8-1.2 1.8-1 2.8l.5 2.2 2.2.5c1 .2 2-.2 2.8-1l7-7-4.5-4.5z" />
+    <line x1="12" y1="8" x2="8" y2="12" />
     <circle cx="16.5" cy="16.5" r="3.5" />
-    <path d="M14.5 15.5c.8.8 1.8 1 2.5.5s1.2-.5 2 .5" />
+    <path d="M14.5 15.2c.8.8 1.8 1 2.5.5s1.2-.5 2 .5" />
   </svg>
 );
 
@@ -170,11 +170,18 @@ export const AthleticsIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) =>
     strokeLinejoin="round"
     className={className}
   >
-    <circle cx="16" cy="4.5" r="2" />
-    <path d="M7.5 13.5l3.5-3 3 1.5 4-2" />
-    <path d="M12.5 10.5l2.5 4-1.5 4.5" />
-    <path d="M11 11.5l-3.5 3.5-4 1" />
-    <path d="M3 21h18" />
+    <rect x="2.5" y="5.5" width="19" height="13" rx="6.5" />
+    <rect
+      x="4.5"
+      y="7.5"
+      width="15"
+      height="9"
+      rx="4.5"
+      strokeDasharray="1.5 2"
+      strokeOpacity="0.7"
+    />
+    <rect x="6.5" y="9.5" width="11" height="5" rx="2.5" />
+    <line x1="12" y1="5.5" x2="12" y2="9.5" />
   </svg>
 );
 

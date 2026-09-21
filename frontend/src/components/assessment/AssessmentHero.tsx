@@ -1,5 +1,4 @@
 import React from 'react';
-import { SportIcon } from '../common/Icons';
 
 export interface AssessmentHeroProps {
   title: string;
@@ -37,7 +36,7 @@ export const AssessmentHero: React.FC<AssessmentHeroProps> = ({
       {/* Sport & Role Context Chips */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-slate-200 text-xs font-sans font-medium backdrop-blur-sm">
-          <SportIcon sport={sportName} className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
           <span>{badgeLabel || `${displaySport} Assessment`}</span>
         </span>
 

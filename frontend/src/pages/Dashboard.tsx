@@ -14,7 +14,6 @@ import {
   CalendarIcon,
   CheckIcon,
   ClockIcon,
-  SportIcon,
   PlusIcon,
   CloseIcon,
 } from '../components/common/Icons';
@@ -255,7 +254,7 @@ export default function Dashboard() {
             </span>
             <span className="text-slate-700 text-xs">/</span>
             <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-medium">
-              <SportIcon sport={normalizedSport} className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
               <span>{sportTitle}</span>
             </div>
           </div>
