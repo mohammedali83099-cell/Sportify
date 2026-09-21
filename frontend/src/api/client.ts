@@ -15,8 +15,23 @@ import {
   SportTaxonomy,
 } from '../types';
 
-const rawBaseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+let rawBaseURL = (import.meta.env.VITE_API_BASE_URL || '/api').trim();
+
+// Automatically prepend https:// if a domain (like sportify-production...up.railway.app) was provided without protocol
+if (
+  rawBaseURL &&
+  !rawBaseURL.startsWith('http://') &&
+  !rawBaseURL.startsWith('https://') &&
+  !rawBaseURL.startsWith('/')
+) {
+  rawBaseURL = `https://${rawBaseURL}`;
+}
+
 const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL;
+
+if (typeof window !== 'undefined') {
+  console.log('[Sportify API] Base URL configured as:', baseURL);
+}
 
 const apiClient: AxiosInstance = axios.create({
   baseURL,
@@ -62,8 +77,18 @@ export function formatErrorMessage(err: unknown, fallback: string = 'An unexpect
   if (!err) return fallback;
   if (typeof err === 'string') return err;
 
-  const axiosErr = err as { response?: { data?: { detail?: unknown } }; message?: string };
-  const detail = axiosErr.response?.data?.detail;
+  const axiosErr = err as {
+    response?: {
+      status?: number;
+      statusText?: string;
+      data?: { detail?: unknown } | string;
+    };
+    message?: string;
+    code?: string;
+    config?: { url?: string; baseURL?: string };
+  };
+
+  const detail = (axiosErr.response?.data as any)?.detail;
 
   if (typeof detail === 'string') return detail;
 
@@ -74,6 +99,22 @@ export function formatErrorMessage(err: unknown, fallback: string = 'An unexpect
   if (detail && typeof detail === 'object') {
     const detailObj = detail as { msg?: string; message?: string };
     return detailObj.msg || detailObj.message || fallback;
+  }
+
+  // If response is HTML (e.g. Vercel SPA rewrite when VITE_API_BASE_URL is missing or wrong)
+  if (typeof axiosErr.response?.data === 'string' && axiosErr.response.data.includes('<!DOCTYPE html>')) {
+    return 'Configuration Error: API request routed to frontend instead of backend. Check VITE_API_BASE_URL on Vercel.';
+  }
+
+  // If server returned HTTP error status (500, 502, 504, 404, etc.)
+  if (axiosErr.response?.status) {
+    return `Server Error ${axiosErr.response.status} (${axiosErr.response.statusText || 'Error'}). Check backend logs on Railway.`;
+  }
+
+  // If network failure or CORS blocking
+  if (axiosErr.message === 'Network Error' || axiosErr.code === 'ERR_NETWORK') {
+    const targetUrl = `${axiosErr.config?.baseURL || ''}${axiosErr.config?.url || ''}`;
+    return `Network Error: Could not reach backend at ${targetUrl || 'configured URL'}. Check Railway status.`;
   }
 
   return axiosErr.message || fallback;

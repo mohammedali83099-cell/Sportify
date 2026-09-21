@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAthleteStore } from '../store/athleteStore';
-import { authAPI, intakeAPI } from '../api/client';
+import { authAPI, intakeAPI, formatErrorMessage } from '../api/client';
 import SportifyLogo from '../components/common/SportifyLogo';
 import {
   ArrowRightIcon,
@@ -370,8 +370,7 @@ export const Onboarding: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(
-        err.response?.data?.detail ||
-        'Incorrect email or password. Please verify your credentials.'
+        formatErrorMessage(err, 'Authentication failed. Please verify your connection or credentials.')
       );
     } finally {
       setLoading(false);
@@ -412,8 +411,7 @@ export const Onboarding: React.FC = () => {
       }, 1000);
     } catch (err: any) {
       setError(
-        err.response?.data?.detail ||
-        'Password reset failed. Please verify your email and recovery PIN.'
+        formatErrorMessage(err, 'Password reset failed. Please check your connection and recovery PIN.')
       );
     } finally {
       setLoading(false);
@@ -499,8 +497,7 @@ export const Onboarding: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(
-        err.response?.data?.detail ||
-        'Registration failed. Please check your information and try again.'
+        formatErrorMessage(err, 'Registration failed. Backend server may be unreachable. Please verify your connection.')
       );
     } finally {
       setLoading(false);
@@ -526,8 +523,7 @@ export const Onboarding: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(
-        err.response?.data?.detail ||
-        'Failed to complete profile configuration. Please check your inputs.'
+        formatErrorMessage(err, 'Failed to complete profile configuration. Please check your inputs.')
       );
     } finally {
       setLoading(false);
