@@ -38,6 +38,7 @@ async def create_all_tables():
             tables_to_columns = {
                 "athletes": [
                     ("is_verified", "BOOLEAN DEFAULT 0"),
+                    ("hashed_recovery_pin", "TEXT"),
                 ],
                 "athlete_profiles": [
                     ("discipline", "TEXT"),

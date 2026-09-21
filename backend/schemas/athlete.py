@@ -10,11 +10,18 @@ class AthleteBase(BaseModel):
 
 class AthleteCreate(AthleteBase):
     password: str
+    recovery_pin: Optional[str] = Field(None, min_length=4, max_length=6)
 
 
 class AthleteLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class ResetPasswordPinRequest(BaseModel):
+    email: EmailStr
+    recovery_pin: str = Field(..., min_length=4, max_length=6)
+    new_password: str = Field(..., min_length=6)
 
 
 class AthleteResponse(AthleteBase):
@@ -42,6 +49,7 @@ class VerifyOTPRequest(BaseModel):
     purpose: Literal["registration", "login"] = "registration"
     full_name: Optional[str] = None
     password: Optional[str] = None
+    recovery_pin: Optional[str] = Field(None, min_length=4, max_length=6)
 
 
 class OTPResponse(BaseModel):

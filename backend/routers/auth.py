@@ -19,6 +19,7 @@ from schemas.athlete import (
     SendOTPRequest,
     VerifyOTPRequest,
     OTPResponse,
+    ResetPasswordPinRequest,
 )
 from config import settings
 from services.email_service import email_service
@@ -161,6 +162,7 @@ async def verify_otp(
             email=clean_email,
             full_name=payload.full_name.strip(),
             hashed_password=get_password_hash(payload.password),
+            hashed_recovery_pin=get_password_hash(payload.recovery_pin) if payload.recovery_pin else None,
             is_verified=True,
         )
         db.add(new_athlete)
@@ -195,6 +197,7 @@ async def register(athlete: AthleteCreate, db: AsyncSession = Depends(get_db)):
     new_athlete = Athlete(
         email=clean_email,
         hashed_password=get_password_hash(athlete.password),
+        hashed_recovery_pin=get_password_hash(athlete.recovery_pin) if athlete.recovery_pin else None,
         full_name=athlete.full_name.strip() if athlete.full_name else "",
         is_verified=True,
     )
@@ -203,6 +206,43 @@ async def register(athlete: AthleteCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_athlete)
 
     access_token = create_access_token(data={"sub": new_athlete.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/reset-password-pin", response_model=Token)
+async def reset_password_with_pin(
+    payload: ResetPasswordPinRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Direct self-contained account recovery using the athlete's 4-6 digit Security PIN.
+    Zero dependency on external email dispatchers.
+    """
+    clean_email = payload.email.strip().lower()
+    result = await db.execute(select(Athlete).filter(func.lower(Athlete.email) == clean_email))
+    athlete = result.scalars().first()
+    if not athlete:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No athlete account found with this email address.",
+        )
+
+    if not athlete.hashed_recovery_pin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No security recovery PIN was configured for this account. Please contact support or create a new account.",
+        )
+
+    if not verify_password(payload.recovery_pin, athlete.hashed_recovery_pin):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect security recovery PIN. Please verify your 4-6 digit PIN and try again.",
+        )
+
+    athlete.hashed_password = get_password_hash(payload.new_password)
+    await db.commit()
+
+    access_token = create_access_token(data={"sub": athlete.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
 

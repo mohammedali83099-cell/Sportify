@@ -36,6 +36,13 @@ export interface RegisterRequest {
   email: string;
   password?: string;
   full_name?: string;
+  recovery_pin?: string;
+}
+
+export interface ResetPasswordPinRequest {
+  email: string;
+  recovery_pin: string;
+  new_password: string;
 }
 
 export interface LoginRequest {

@@ -10,6 +10,7 @@ import {
   VerifyOTPRequest,
   OTPResponse,
   RegisterRequest,
+  ResetPasswordPinRequest,
   LoginRequest,
   SportTaxonomy,
 } from '../types';
@@ -40,7 +41,8 @@ apiClient.interceptors.response.use(
       const isAuthRoute =
         url.includes('/auth/login') ||
         url.includes('/auth/verify-otp') ||
-        url.includes('/auth/send-otp');
+        url.includes('/auth/send-otp') ||
+        url.includes('/auth/reset-password-pin');
       if (!isAuthRoute) {
         const store = useAthleteStore.getState();
         if (store.token || store.isAuthenticated) {
@@ -93,6 +95,9 @@ export const authAPI = {
 
   verifyOTP: (data: VerifyOTPRequest): Promise<Token> =>
     apiClient.post<Token>('/auth/verify-otp', data).then((res) => res.data),
+
+  resetPasswordWithPin: (data: ResetPasswordPinRequest): Promise<Token> =>
+    apiClient.post<Token>('/auth/reset-password-pin', data).then((res) => res.data),
 
   getMe: (): Promise<Athlete> =>
     apiClient.get<Athlete>('/auth/me').then((res) => res.data),

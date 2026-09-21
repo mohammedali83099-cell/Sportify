@@ -10,6 +10,7 @@ class Athlete(Base):
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
+    hashed_recovery_pin = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     profile = relationship("AthleteProfile", back_populates="athlete", uselist=False)

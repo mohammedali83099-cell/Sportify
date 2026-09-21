@@ -45,7 +45,17 @@ export const Onboarding: React.FC = () => {
     email: '',
     password: '',
     full_name: '',
+    recovery_pin: '',
   });
+
+  // Forgot Password / Recovery State
+  const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
+  const [resetData, setResetData] = useState({
+    email: '',
+    recovery_pin: '',
+    new_password: '',
+  });
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   const [profileData, setProfileData] = useState<any>({
     sport: '',
@@ -368,6 +378,48 @@ export const Onboarding: React.FC = () => {
     }
   };
 
+  const handleResetPasswordSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!resetData.email || !resetData.recovery_pin || !resetData.new_password) {
+      setError('Please provide your email, 4-6 digit recovery PIN, and new password.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setResetSuccess(null);
+
+    try {
+      const res = await authAPI.resetPasswordWithPin({
+        email: resetData.email,
+        recovery_pin: resetData.recovery_pin,
+        new_password: resetData.new_password,
+      });
+
+      const token = res.access_token;
+      login({ id: 0, email: resetData.email, full_name: '' }, token, null);
+      const me = await authAPI.getMe().catch(() => ({ id: 0, email: resetData.email, full_name: '' }));
+
+      try {
+        const existingProfile = await intakeAPI.getProfile();
+        login(me, token, existingProfile);
+      } catch {
+        login(me, token, null);
+      }
+
+      setResetSuccess('Password reset successfully! Launching Athlete Portal...');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+    } catch (err: any) {
+      setError(
+        err.response?.data?.detail ||
+        'Password reset failed. Please verify your email and recovery PIN.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const buildProfilePayload = () => {
     const playstyleProfile = {
       role_goals: profileData.role_goals || [],
@@ -423,6 +475,7 @@ export const Onboarding: React.FC = () => {
         email: authData.email,
         password: authData.password,
         full_name: authData.full_name,
+        recovery_pin: authData.recovery_pin.trim() || undefined,
       });
 
       const token = authRes.access_token;
@@ -565,59 +618,159 @@ export const Onboarding: React.FC = () => {
                 <span>Athlete Command Portal</span>
               </div>
               <h1 className="text-2xl font-bold font-heading text-white tracking-tight mb-1">
-                Sign In to Sportify
+                {isForgotPassword ? 'Reset Password' : 'Sign In to Sportify'}
               </h1>
               <p className="text-xs text-slate-400 font-sans leading-relaxed">
-                Access your personalized athlete profile, video telemetry, and 4-week training cycles.
+                {isForgotPassword
+                  ? 'Enter your registered email and 4–6 digit security recovery PIN to reset your password.'
+                  : 'Access your personalized athlete profile, video telemetry, and 4-week training cycles.'}
               </p>
             </div>
 
-            <form onSubmit={handleSignInSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="athlete@sportify.com"
-                  value={authData.email}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, email: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+            {isForgotPassword ? (
+              <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                {resetSuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs flex items-center gap-2 font-sans">
+                    <CheckIcon className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{resetSuccess}</span>
+                  </div>
+                )}
 
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={authData.password}
-                  onChange={(e) =>
-                    setAuthData({ ...authData, password: e.target.value })
-                  }
-                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
-                />
-              </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="athlete@sportify.com"
+                    value={resetData.email}
+                    onChange={(e) =>
+                      setResetData({ ...resetData, email: e.target.value })
+                    }
+                    className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                  />
+                </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
-                  {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                    Security Recovery PIN (4–6 Digits)
+                  </label>
+                  <input
+                    type="password"
+                    maxLength={6}
+                    required
+                    placeholder="••••"
+                    value={resetData.recovery_pin}
+                    onChange={(e) =>
+                      setResetData({ ...resetData, recovery_pin: e.target.value.replace(/\D/g, '') })
+                    }
+                    className="w-full h-11 px-3.5 sportify-input text-xs font-mono tracking-widest"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                    New Password (Min. 6 Characters)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="••••••••"
+                    value={resetData.new_password}
+                    onChange={(e) =>
+                      setResetData({ ...resetData, new_password: e.target.value })
+                    }
+                    className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                  />
+                </div>
+
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${
+                      loading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <span>{loading ? 'Resetting Password...' : 'Reset Password & Sign In'}</span>
+                    {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setIsForgotPassword(false);
+                    }}
+                    className="w-full h-10 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] text-xs font-sans text-slate-400 hover:text-white transition-all"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSignInSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="athlete@sportify.com"
+                    value={authData.email}
+                    onChange={(e) =>
+                      setAuthData({ ...authData, email: e.target.value })
+                    }
+                    className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-slate-300">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        setResetData({ ...resetData, email: authData.email });
+                        setIsForgotPassword(true);
+                      }}
+                      className="text-[11px] font-sans text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={authData.password}
+                    onChange={(e) =>
+                      setAuthData({ ...authData, password: e.target.value })
+                    }
+                    className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full h-11 btn-primary flex items-center justify-center gap-2 text-xs font-bold shadow-[0_4px_20px_rgba(255,255,255,0.12)] ${
+                      loading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
+                    {!loading && <ArrowRightIcon className="w-4 h-4 text-slate-950" />}
+                  </button>
+                </div>
+              </form>
+            )}
 
             <p className="text-center text-xs text-slate-400 pt-1 font-sans">
               New athlete?{' '}
@@ -1743,6 +1896,28 @@ export const Onboarding: React.FC = () => {
                   }
                   className="w-full h-11 px-3.5 sportify-input text-xs font-mono"
                 />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-slate-300">
+                    Security Recovery PIN (4–6 Digits)
+                  </label>
+                  <span className="text-[10px] text-emerald-400 font-mono">Recommended</span>
+                </div>
+                <input
+                  type="password"
+                  maxLength={6}
+                  placeholder="e.g. 4829"
+                  value={authData.recovery_pin}
+                  onChange={(e) =>
+                    setAuthData({ ...authData, recovery_pin: e.target.value.replace(/\D/g, '') })
+                  }
+                  className="w-full h-11 px-3.5 sportify-input text-xs font-mono tracking-widest"
+                />
+                <p className="text-[11px] text-slate-500 font-sans mt-1">
+                  Used to instantly recover your account if you ever forget your password.
+                </p>
               </div>
             </form>
           </div>
