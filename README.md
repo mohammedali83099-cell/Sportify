@@ -6,14 +6,9 @@ Sportify is an intelligent, full-stack athlete development platform that pairs *
 
 ---
 
-## 🚀 Live Deployments
+## 🚀 Live Deployment
 
 - **Web Application (Vercel)**: [https://sportify-3dzr.vercel.app](https://sportify-3dzr.vercel.app)
-- **Backend API (Railway)**: [https://sportify-production-f432.up.railway.app](https://sportify-production-f432.up.railway.app)
-- **API Documentation**: [https://sportify-production-f432.up.railway.app/docs](https://sportify-production-f432.up.railway.app/docs)
-- **Health Check**: [https://sportify-production-f432.up.railway.app/health](https://sportify-production-f432.up.railway.app/health)
-
----
 
 ## What It Does
 
