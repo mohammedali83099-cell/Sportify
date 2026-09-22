@@ -205,26 +205,3 @@ Sportify/
 | `GET` | `/progress/reassessment`| Calculate trajectory and reassessment delta |
 | `GET` | `/health` | Server health check endpoint |
 
----
-
-## Environment Configuration
-
-### Frontend (`frontend/.env` / Vercel Environment Variables)
-
-```bash
-VITE_API_BASE_URL=https://sportify-production-f432.up.railway.app
-```
-
-> **Note:** The client automatically normalizes protocol schemes, so `sportify-production-f432.up.railway.app` or `https://sportify-production-f432.up.railway.app` are both safely resolved.
-
-### Backend (`backend/.env` / Railway Environment Variables)
-
-```bash
-DATABASE_URL=postgresql+asyncpg://<user>:<password>@<host>:<port>/<database>
-SECRET_KEY=your-jwt-secret-key
-GEMINI_API_KEY=your-gemini-api-key
-RESEND_API_KEY=your-resend-api-key          # Optional: dark-mode HTML emails (falls back to console)
-REDIS_URL=redis://<host>:<port>             # Optional: falls back to in-memory TTL dictionary
-UPLOAD_DIR=uploads
-PORT=8000
-```
