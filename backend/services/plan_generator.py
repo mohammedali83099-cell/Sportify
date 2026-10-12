@@ -520,11 +520,16 @@ Requirements:
         Generates doctor-grounded recovery pathways when doctor recommendations are submitted,
         or dynamic load-based recovery when no acute injury is checked in.
         """
+        # Handle cases where bottlenecks was passed positionally as the second argument
+        if isinstance(doctor_check_in, list) and bottlenecks is None:
+            bottlenecks = doctor_check_in
+            doctor_check_in = None
+
         sport = athlete_profile.get("sport", "cricket")
         role = athlete_profile.get("primary_role") or athlete_profile.get("role", "athlete")
         top_focus = (
             bottlenecks[0].get("attribute", "").replace("_", " ")
-            if bottlenecks
+            if bottlenecks and len(bottlenecks) > 0 and isinstance(bottlenecks[0], dict)
             else "general conditioning"
         )
 
@@ -545,7 +550,7 @@ Requirements:
             )
 
         # IF DOCTOR RECOMMENDATION CHECK-IN PROVIDED
-        if doctor_check_in and doctor_check_in.get("injury_name"):
+        if doctor_check_in and isinstance(doctor_check_in, dict) and doctor_check_in.get("injury_name"):
             injury_name = doctor_check_in.get("injury_name", "Reported Injury")
             severity = doctor_check_in.get("severity", "Moderate")
             rest_days = max(int(doctor_check_in.get("doctor_rest_days", 3)), 0)

@@ -267,6 +267,15 @@ class PoseAnalyzer:
         protocol = None
         if not is_auto:
             protocol = self.registry.get_protocol(activity_or_protocol)
+            if protocol is None:
+                return {
+                    "status": "unsupported_activity",
+                    "is_valid": False,
+                    "error_code": "UNSUPPORTED_PROTOCOL",
+                    "message": f"Unsupported movement protocol '{activity_or_protocol}'.",
+                    "movement_scores": {},
+                    "movement_feedback": [f"Activity '{activity_or_protocol}' is not a recognized movement protocol."],
+                }
 
         # Guard 2: MediaPipe computer vision engine availability
         if self.pose is None:

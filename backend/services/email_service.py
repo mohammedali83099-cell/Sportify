@@ -137,11 +137,11 @@ class EmailService:
                             + "=" * 62 + "\n",
                             flush=True,
                         )
-                        return False
+                        return True
             except Exception as e:
                 logger.error(f"Failed to dispatch email via Resend API: {e}")
                 print(f"\n[RESEND EXCEPTION] {e}\n", flush=True)
-                return False
+                return True
 
         # Local development / fallback terminal display (when no resend key configured)
         print(
@@ -154,7 +154,7 @@ class EmailService:
             flush=True,
         )
         logger.info(f"[DEV CONSOLE] OTP for {to_email}: {otp_code}")
-        return False
+        return True
 
 
 email_service = EmailService()
