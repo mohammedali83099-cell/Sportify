@@ -28,7 +28,7 @@ Every sport and playing role places distinct physical and mechanical demands on 
 
 ---
 
-## 🏏 Role-Specific Training in Cricket: Batting Sub-Roles
+## 🏏 Role-Specific Training example of Cricket: Batting Sub-Roles
 
 To see why training must be tailored to an athlete's specific role, consider how three different batting positions in cricket approach the game:
 
