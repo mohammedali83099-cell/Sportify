@@ -23,7 +23,7 @@ Sportify is an athletic performance and biomechanical diagnostics platform engin
 Competitive sport is governed by kinetic sequencing, multi-planar force transmission, and joint integrity. Yet the vast majority of developing, collegiate, and competitive athletes train in a **biomechanical blind spot**:
 
 1. **The Commercial Fitness Disconnect**: Mainstream fitness apps treat human movement as isolated calorie burning or generic gym splits. They prescribe static, bilateral exercises (like generic bench presses and leg presses) that ignore dynamic movement planes, rotational torque, and the explosive energy demands of competitive sport.
-2. **The High-Performance Paywall**: Gold-standard biomechanical screening—such as optical motion capture, 3D kinematic telemetry, and dual force-plate diagnostics—is financially and logistically restricted to elite national sports institutes, Olympic facilities, and top-tier franchises.
+2. **The High-Performance Paywall**: Biomechanical screening—such as optical motion capture, 3D kinematic telemetry, and dual force-plate diagnostics—is financially and logistically restricted to elite national sports institutes, Olympic facilities, and top-tier franchises.
 3. **Unidentified Energy Leakages & Injury Precursors**: Kinetic chain breakdowns rarely show symptoms until performance plateaus or an acute injury occurs. Flawed deceleration mechanics, dynamic knee valgus collapse, asymmetrical force absorption, and premature torso uncoiling remain undetectable to the naked eye.
 4. **The Prescriptive Void**: Even when a movement flaw is identified, athletes lack an integrated system that connects diagnostic kinematic telemetry directly into an actionable, multi-week periodized training cycle with targeted corrective drills.
 
