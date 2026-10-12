@@ -4,11 +4,11 @@
 
 [![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%7C%20TypeScript%20%7C%20Vite-blue)](https://sportify-3dzr.vercel.app)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%7C%20Python%203.11-green)](https://sportify-3dzr.vercel.app)
-[![Vision](https://img.shields.io/badge/Vision-Google%20MediaPipe%20Tasks-orange)](https://sportify-3dzr.vercel.app)
-[![AI Coaching](https://img.shields.io/badge/AI%20Coaching-Google%20Gemini%203.6-purple)](https://sportify-3dzr.vercel.app)
+[![Kinematic Engine](https://img.shields.io/badge/Kinematics-MediaPipe%20Pose%20Tracking-orange)](https://sportify-3dzr.vercel.app)
+[![Programming](https://img.shields.io/badge/Programming-Periodized%20Athletic%20Engine-purple)](https://sportify-3dzr.vercel.app)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary%20%7C%20All%20Rights%20Reserved-red.svg)](LICENSE)
 
-Sportify is an intelligent athlete development platform that turns any smartphone or web camera into a high-performance biomechanics coaching lab. By pairing **computer-vision movement tracking**, **role-specific athletic intelligence**, and **generative AI coaching**, Sportify gives athletes objective diagnostic feedback, identifies mechanical bottlenecks, and delivers tailored periodized training regimens.
+Sportify is an athletic performance and biomechanical diagnostics platform engineered to bridge the gap between high-performance movement labs and everyday athletic development. By integrating **computer-vision kinematic tracking**, **position-specific biomechanical screening**, and **periodized training synthesis**, Sportify delivers objective movement telemetry, identifies mechanical bottlenecks, and prescribes role-calibrated strength, mobility, and recovery pathways directly from standard video.
 
 ---
 
@@ -18,89 +18,89 @@ Sportify is an intelligent athlete development platform that turns any smartphon
 
 ---
 
-## ❓ What Problem Does Sportify Solve?
+## ❓ The Problem: Why One-Size-Fits-All Training Fails Athletes
 
-Most athletes today train with a fundamental handicap: **generic advice**.
+Competitive sport is governed by kinetic sequencing, multi-planar force transmission, and joint integrity. Yet the vast majority of developing, collegiate, and competitive athletes train in a **biomechanical blind spot**:
 
-Standard gym trackers and fitness apps treat every user like a general gym-goer aiming to burn calories or do generic bench presses. Meanwhile, elite movement labs equipped with 3D motion-capture sensors, force plates, and dedicated biomechanists are locked away inside professional franchises and high-budget academies.
-
-This leaves grassroots, collegiate, and aspiring competitive athletes in a **feedback vacuum**:
-1. **Hidden Mechanical Flaws**: Flawed mechanics—like a collapsing front knee, premature trunk rotation, or asymmetrical landing forces—go unnoticed until performance drops or an injury occurs.
-2. **Cookie-Cutter Workouts**: Athletes are handed one-size-fits-all fitness routines that don't address their unique sporting demands or current physical bottlenecks.
-3. **Zero Objective Diagnostics**: Without access to a biomechanics lab, athletes have no way to visually measure their joint stability, mobility, posture, balance, and explosive power.
+1. **The Commercial Fitness Disconnect**: Mainstream fitness apps treat human movement as isolated calorie burning or generic gym splits. They prescribe static, bilateral exercises (like generic bench presses and leg presses) that ignore dynamic movement planes, rotational torque, and the explosive energy demands of competitive sport.
+2. **The High-Performance Paywall**: Gold-standard biomechanical screening—such as optical motion capture, 3D kinematic telemetry, and dual force-plate diagnostics—is financially and logistically restricted to elite national sports institutes, Olympic facilities, and top-tier franchises.
+3. **Unidentified Energy Leakages & Injury Precursors**: Kinetic chain breakdowns rarely show symptoms until performance plateaus or an acute injury occurs. Flawed deceleration mechanics, dynamic knee valgus collapse, asymmetrical force absorption, and premature torso uncoiling remain undetectable to the naked eye.
+4. **The Prescriptive Void**: Even when a movement flaw is identified, athletes lack an integrated system that connects diagnostic kinematic telemetry directly into an actionable, multi-week periodized training cycle with targeted corrective drills.
 
 ---
 
-## 🏏 Why Role-Specific Training Matters: The Cricket Example
+## 🏏 Why Role-Specific Screening Matters: The Cricket Batting Spectrum
 
-Even within the **exact same sport**, two athletes have completely different kinematic demands and injury profiles. Consider three positions in **Cricket**:
+The limitations of generic training become immediately clear when evaluating athletes within the **exact same sport and discipline**. 
 
-| Athletic Role | Movement Demands & Biomechanics | What Happens With a Generic Workout | What Sportify Analyzes & Prescribes |
+Consider three specialized batting roles in **Cricket**—each demanding fundamentally distinct kinetic sequencing, force vectors, and physiological profiles:
+
+| Sub-Role | Biomechanical & Kinematic Demands | The Generic Training Failure | What Sportify Analyzes & Prescribes |
 |---|---|---|---|
-| 🏏 **Opening Batsman** | **Rotational torque, lead-knee stability, weight transfer.** Needs precise head alignment over the front knee, dynamic hip rotation for drive mechanics, and strong forearm/wrist control. | Standard heavy squats without rotational or single-leg focus can stiffen hips, causing the batter to fall over to the off-side during cover drives. | Analyzes front knee flexion, head-over-knee alignment, and lead elbow angle. Prescribes thoracic mobility and unilateral transfer drills. |
-| ⚡ **Fast Bowler** | **Violent delivery stride bracing, eccentric hamstring capacity, spinal integrity.** Absorbs ground reaction forces of **6–8× body weight** during the front-foot plant while counter-rotating the trunk. | Generic leg presses fail to prepare the hamstring for high-speed eccentric braking, heightening lumbar stress fracture and hamstring tear risks. | Analyzes front-leg brace rigidity, torso inclination, and eccentric landing absorption. Prescribes eccentric hamstring strength and anti-rotational core stability. |
-| 🧤 **Wicketkeeper** | **Deep sustained hip flexion, reactive ankle elasticity, multi-directional lateral agility.** Spends hours in deep squats with sudden explosive lateral launches off both feet. | Generic calf raises and bench presses do not build the sustained hip capsule mobility or reactive tendon stiffness needed to stay low for 50 overs. | Evaluates deep hip/ankle mobility, symmetry in bilateral loading, and explosive reactive extension. Prescribes hip mobility flow and reactive plyometrics. |
+| 🏏 **Opening Technical Batsman** | **Precision kinetic alignment, front-foot braking stability, late impact.** Facing new-ball pace and swing requires a strictly vertical bat trajectory, head-over-lead-knee alignment at impact, and delayed wrist uncocking with zero off-axis torso tilt. | Generic bilateral leg presses and heavy squats stiffen hip capsule mobility, causing the batter to fall over toward the off-side during cover drives and miss the swinging line. | **Analyzes:** Lead-knee flexion angle, head-to-knee alignment, front-foot braking stability, and lead-elbow elevation.<br>**Prescribes:** Unilateral front-foot deceleration drills, thoracic rotation mobility, and lead-side kinetic chain transfer. |
+| 🔄 **Middle-Order Anchor** | **Multi-directional weight transfer, rotational agility, dynamic tempo control.** Requires rapid strike-rotation mechanics, deep wrist-hinge articulation for gap manipulation against spin, low-center-of-mass sweep/cut transitions, and repeat-sprint durability. | Generic bodybuilding splits ignore multi-planar rotational mobility and aerobic-glycolytic endurance, leading to core fatigue in the middle overs and mechanical breakdown during quick singles. | **Analyzes:** Dynamic pelvic-to-torso rotational sequencing, weight distribution across multi-angle stances, and posture maintenance under repetition.<br>**Prescribes:** Tri-planar core stability, rotational recovery velocity, and high-density change-of-direction conditioning. |
+| 💥 **Power Finisher / Slogger** | **Maximum rate of force development (RFD), rapid hip-shoulder separation, wide base stability.** Generating maximum bat speed requires explosive ground-reaction force transfer from the rear hip through the thoracic spine into a violent follow-through with high launch angles. | Standard slow-tempo gym workouts fail to build explosive RFD or triple-extension velocity, resulting in arm-dominant swings with zero hip torque and heightened lumbar hyperextension risks. | **Analyzes:** Pelvic rotation velocity, back-hip explosive extension, base width stability through contact, and rotational follow-through balance.<br>**Prescribes:** Rotational plyometrics, explosive hip-hinge power drills, anti-rotational core bracing, and ground-force transfer work. |
 
-> **The Takeaway**: A one-size-fits-all workout app gives all three of these cricketers the exact same routine. Sportify understands that what makes a fast bowler durable is completely different from what makes an opening batsman technically sound.
+> **The Takeaway**: A generic fitness tracker prescribes the exact same workout to all three cricketers. Sportify recognizes that an opening batter needing late technical alignment requires an entirely different physical blueprint than a finisher maximizing rotational power output.
 
 ---
 
-## ⚡ How Sportify Works (Core Functionality)
+## ⚡ How Sportify Works (Core Architecture)
 
-Sportify guides athletes through a continuous, objective development cycle:
+Sportify structures athletic progression into a closed-loop diagnostic and developmental workflow:
 
 ```
-[ 1. Onboarding ]  -->  [ 2. Movement Studio ]  -->  [ 3. Diagnostic Engine ]  -->  [ 4. AI Training & Recovery ]  -->  [ 5. Progress Tracking ]
-  Sport, Role &           Record or upload video         Kinematic radar chart          4-Week tailored periodized         Workout logging, volume
-  Athletic Identity       with real-time CV gate         & bottleneck detection         regimen + doctor recovery          accumulation & re-test
+[ 1. Onboarding ]  ──►  [ 2. Movement Studio ]  ──►  [ 3. Diagnostic Engine ]  ──►  [ 4. Periodized Training ]  ──►  [ 5. Progress Tracking ]
+  Sport, Position &       Activity-Aware Video           Kinematic Radar Profiling      4-Week Phased Regimen &          Workload Volume &
+  Athletic Demands        Kinematics Screening           & Bottleneck Isolation         Targeted Recovery Plan           Longitudinal Deltas
 ```
 
-### 1. Granular Athlete Onboarding
-- Athletes define their sport (Cricket, Football, Basketball, Athletics), primary role, and specialized sub-role.
-- Captures biometrics, training availability, available equipment, and athlete-reported focus areas to establish a baseline profile.
+### 1. Granular Athlete Profiling & Taxonomy
+- Athletes define their exact athletic profile: sport (Cricket, Football, Basketball, Athletics), primary discipline, playing role, and specialized sub-role.
+- Captures biometrics, training availability, equipment access, and self-reported performance priorities to calibrate baseline benchmarks.
 
-### 2. Intelligent Movement Studio & Quality Gate
-- Guided video capture with framing instructions (camera distance, height, angle).
-- **Activity-Aware Protocols**: Applies dedicated movement analyzers specifically tuned for:
+### 2. Activity-Aware Movement Studio & Quality Gate
+- Guided video capture with framing parameters (distance, height, lighting, plane of motion).
+- **Specialized Kinematic Analyzers**: Applies movement protocols engineered for specific sporting actions:
   - 🏏 **Cricket Batting Drive Mechanics** (`cricket_batting`): Stance alignment, lead elbow elevation, head-over-knee tracking, front knee flexion, and rotational weight transfer.
-  - ⚽ **Football Strike & Kick** (`football_strike`): Plant-foot stability, kicking knee extension velocity, hip whip angle, and torso lean balance.
-  - 🏀 **Basketball Jump Shot & Release** (`basketball_jump_shot`): Triple extension alignment (ankle-knee-hip), vertical apex timing, and landing absorption.
-  - 🏃 **Sprint Acceleration** (`sprint_mechanics`): Forward acceleration lean, high knee drive elevation, hip extension, and stride symmetry.
-  - ⚡ **Vertical Jump / CMJ** (`vertical_jump`): Countermovement depth, explosive extension rate, and eccentric landing shock dissipation.
-  - 🏋️ **Squat Biomechanics** (`squat`): Femur-to-parallel depth, knee valgus/varus deviation, torso inclination, and bilateral knee symmetry.
-- **Smart Quality Gate**: Checks landmark visibility (minimum 70% threshold) and tracking confidence before running analysis, preventing false or misleading scores.
+  - ⚽ **Football Strike & Kicking Mechanics** (`football_strike`): Plant-foot stability, kicking knee extension velocity, hip whip angle, and torso lean balance.
+  - 🏀 **Basketball Jump Shot & Release** (`basketball_jump_shot`): Triple extension alignment (ankle-knee-hip), vertical apex timing, and landing shock dissipation.
+  - 🏃 **Sprint Acceleration Mechanics** (`sprint_mechanics`): Forward acceleration lean, high knee drive elevation, hip extension, and bilateral stride symmetry.
+  - ⚡ **Vertical Jump / CMJ** (`vertical_jump`): Countermovement depth, explosive extension rate, and eccentric landing absorption.
+  - 🏋️ **Squat Biomechanics** (`squat`): Femur-to-parallel depth, knee valgus/varus control, torso inclination, and bilateral symmetry.
+- **Biomechanical Quality Gate**: Screens frames for joint visibility (minimum 70% landmark coverage) and tracking stability before processing, preventing inaccurate readings.
 
-### 3. Biomechanical Radar Profiling & Gap Analysis
-- Kinematic metrics are plotted on an interactive, dynamic SVG radar chart across 6 core athletic pillars:
-  - **Stability**: Dynamic joint control and base maintenance under load.
-  - **Mobility**: Functional active range of motion.
+### 3. Multi-Axis Radar Profiling & Kinematic Telemetry
+- Kinematic metrics are synthesized into an interactive dynamic SVG radar profile mapped across 6 athletic pillars:
+  - **Stability**: Dynamic joint control and base maintenance under kinetic load.
+  - **Mobility**: Functional active range of motion across primary moving joints.
   - **Symmetry**: Bilateral balance between left and right kinetic chains.
-  - **Posture**: Spinal alignment, head position, and core integrity.
-  - **Explosive Capacity**: Rate of force development and acceleration speed.
-  - **Balance**: Center-of-mass control during movement execution and landing.
+  - **Posture**: Spinal alignment, head position, and core integrity throughout movement phases.
+  - **Explosive Capacity**: Rate of force development, extension speed, and acceleration.
+  - **Balance**: Center-of-mass control during dynamic transitions and landing.
 
-### 4. Algorithmic Bottleneck Diagnostic Engine
-- Compares measured kinematics against sport- and position-specific benchmarks.
-- Automatically categorizes mechanics into four clear performance tiers:
-  - 🟢 **Strengths**: Mechanics that meet or exceed role standards.
-  - 🔵 **Proficient**: Consistent baseline movement patterns.
-  - 🟡 **Development Areas**: Inefficiencies limiting power or fluidity.
-  - 🔴 **Critical Bottlenecks**: Severe faults or compensations that restrict performance and increase injury vulnerability.
+### 4. Bottleneck Diagnostic Engine
+- Evaluates measured kinematic data against role-specific performance standards.
+- Automatically isolates and categorizes findings into four actionable performance tiers:
+  - 🟢 **Strengths**: Solid mechanics that meet or exceed position benchmarks.
+  - 🔵 **Proficient**: Consistent baseline patterns with minor optimization room.
+  - 🟡 **Development Areas**: Noticeable mechanical deviations limiting power or efficiency.
+  - 🔴 **Critical Bottlenecks**: Significant kinematic faults or compensations that heighten injury vulnerability.
 
-### 5. AI Periodized 4-Week Training & Recovery Prescriptions
-- Translates detected bottlenecks into an intelligent, structured 4-week training routine (*Foundation → Progression → Peak → Deload*).
-- Prescribes role-specific corrective exercises from a curated catalog, complete with sets, reps, intensity (RPE), and biomechanical cues.
-- Generates a doctor-grounded recovery pathway tailored to loaded joints, soft-tissue regeneration, and nervous system recovery.
+### 5. Periodized 4-Week Athletic Programming & Recovery
+- Directly translates diagnostic findings into a 4-week structured training cycle (*Foundation → Progression → Peak → Deload*).
+- Prescribes role-specific corrective drills from an extensive athletic exercise catalog, complete with sets, reps, intensity (RPE), and coaching cues.
+- Provides doctor-grounded recovery pathways targeting loaded joint complexes, soft-tissue regeneration, and autonomic readiness.
 
 ### 6. Longitudinal Progress Tracking
-- Athletes log completed training sessions, record perceived exertion, and accumulate workload volume.
-- Historical re-assessments calculate a trajectory delta, visually showing whether mechanical bottlenecks are improving over time.
+- Athletes log completed training sessions, track perceived exertion, and monitor cumulative training volume.
+- Historical re-assessments calculate a trajectory delta, visually showing whether mechanical bottlenecks are resolving over time.
 
 ---
 
-## 🏆 Supported Sports & Roles
+## 🏆 Supported Sports & Taxonomy
 
-| Sport | Primary Roles | Supported Sub-Roles |
+| Sport | Primary Roles | Specialized Sub-Roles |
 |---|---|---|
 | 🏏 **Cricket** | Batsman, Bowler, All-Rounder, Wicketkeeper | Opening Batsman, Top Order, Middle Order, Finisher, Fast Bowler, Swing Bowler, Spin Bowler, Wicketkeeper-Batsman |
 | ⚽ **Football** | Forward, Midfielder, Defender, Goalkeeper | Striker, Winger, Central Midfielder, Attacking Midfielder, Centre-Back, Full-Back, Goalkeeper |
@@ -111,7 +111,7 @@ Sportify guides athletes through a continuous, objective development cycle:
 
 ## 🏗️ System & Codebase Architecture
 
-Sportify is organized into a modular, decoupled full-stack architecture:
+Sportify is built on a modular, decoupled full-stack architecture:
 
 ```
 Sportify/
@@ -129,7 +129,7 @@ Sportify/
 │   │   └── api/                       # Centralized Axios client with JWT interceptor
 │   └── package.json                   # Client build tooling & scripts
 │
-└── backend/                           # API & Intelligence Engine (FastAPI + Python 3.11)
+└── backend/                           # API & Biomechanics Engine (FastAPI + Python 3.11)
     ├── main.py                        # Application entrypoint & CORS middleware
     ├── config.py                      # Application environment configuration
     ├── database.py                    # Async SQLite / PostgreSQL engine & automated schema migrations
@@ -139,7 +139,7 @@ Sportify/
     │   ├── auth.py                    # Authentication, registration, and OTP verification
     │   ├── intake.py                  # Athlete onboarding & sport taxonomy retrieval
     │   ├── video.py                   # Video upload, processing coordination, and status polling
-    │   ├── plan.py                    # Gemini AI training plan and recovery synthesis
+    │   ├── plan.py                    # Periodized training plan and recovery synthesis
     │   └── progress.py                # Workout logging and longitudinal reassessment tracking
     ├── services/
     │   ├── movement/                  # Biomechanics analysis protocol suite
@@ -149,7 +149,7 @@ Sportify/
     │   │   └── *_analyzer.py          # Activity-specific kinematic analyzers (cricket, football, etc.)
     │   ├── pose_detector.py           # Google MediaPipe Tasks PoseLandmarker adapter
     │   ├── bottleneck_engine.py       # 4-tier gap analysis diagnostic engine
-    │   ├── gemini_service.py          # Google Gemini 3.6 Flash integration with deterministic fallbacks
+    │   ├── gemini_service.py          # Adaptive periodized training & recovery synthesizer
     │   └── exercise_service.py        # Curated athletic exercise catalog
     └── tests/                         # Automated unit test suite (validation, protocols, fallbacks)
 ```
@@ -157,25 +157,25 @@ Sportify/
 ### End-to-End Data Flow
 
 ```
-[ User Video ]
-      │
-      ▼
-[ VideoQualityGate ]  ──(Fails criteria)──► [ Structured Rejection & Framing Guidance ]
-      │ (Passes: >=70% landmarks, >=15 FPS)
-      ▼
+[ Athlete Video Upload ]
+           │
+           ▼
+[ VideoQualityGate ]  ──(Fails criteria)──► [ Rejection with Setup & Framing Guidance ]
+           │ (Passes: >=70% joint landmarks, >=15 FPS)
+           ▼
 [ ProtocolRegistry ]  ──(Selects activity-specific analyzer: e.g. cricket_batting)
-      │
-      ▼
-[ PoseLandmarker + Analyzer ] ──► [ Joint Vectors, Angles & Phase Symmetry ]
-      │
-      ▼
+           │
+           ▼
+[ PoseLandmarker + Analyzer ] ──► [ Joint Vectors, Kinematic Angles & Phase Symmetry ]
+           │
+           ▼
 [ Bottleneck Engine ] ──► [ Gap Analysis vs. Position Benchmarks (Radar Scores) ]
-      │
-      ▼
-[ Gemini AI Coaching ] ──► [ 4-Week Progressive Training Plan & Recovery Pathway ]
-      │
-      ▼
-[ Dynamic UI Dashboard ] ──► [ Interactive Visual Feedback & Workout Tracker ]
+           │
+           ▼
+[ Periodized Engine ] ──► [ 4-Week Structured Training Plan & Recovery Pathway ]
+           │
+           ▼
+[ Dynamic UI Dashboard ] ──► [ Visual Telemetry, Radar Feedback & Workout Logging ]
 ```
 
 ---
