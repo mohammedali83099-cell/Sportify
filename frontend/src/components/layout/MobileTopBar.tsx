@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAthleteStore } from '../../store/athleteStore';
-import { normalizeSport } from '../../config/sportAssessmentConfig';
+import { normalizeSport } from '../../utils/sport';
 import SportifyLogo from '../common/SportifyLogo';
 import { LogoutIcon, ZapIcon } from '../common/Icons';
 

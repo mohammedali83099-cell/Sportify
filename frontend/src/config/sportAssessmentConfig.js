@@ -6,26 +6,8 @@
 import { ROLE_ASSESSMENT_MATRIX, getRoleAssessmentConfig } from './roleAssessmentMatrix';
 import { PROTOCOL_GUIDE_MATRIX, getProtocolGuide } from './protocolGuideMatrix';
 
-export const SPORT_KEYS = {
-  CRICKET: 'cricket',
-  FOOTBALL: 'football',
-  BASKETBALL: 'basketball',
-  ATHLETICS: 'athletics',
-};
-
-/**
- * Safely normalize sport parameter.
- * Returns null if the sport is unsupported, enabling the UI to render a clear recovery screen.
- */
-export const normalizeSport = (sport) => {
-  if (!sport) return null;
-  const s = String(sport).trim().toLowerCase();
-  if (s === 'cricket' || s.startsWith('cricket')) return SPORT_KEYS.CRICKET;
-  if (s === 'football' || s === 'soccer' || s.startsWith('foot')) return SPORT_KEYS.FOOTBALL;
-  if (s === 'basketball' || s.startsWith('basket')) return SPORT_KEYS.BASKETBALL;
-  if (s === 'athletics' || s.startsWith('athlet') || s === 'track_and_field' || s === 'sprint') return SPORT_KEYS.ATHLETICS;
-  return null;
-};
+import { SPORT_KEYS, normalizeSport } from '../utils/sport';
+export { SPORT_KEYS, normalizeSport };
 
 export const SPORT_THEMES = {
   [SPORT_KEYS.CRICKET]: {

@@ -203,6 +203,9 @@ export const SportIcon: React.FC<SportIconProps> = ({ sport, className = 'w-5 h-
   return <TargetIcon className={className} />;
 };
 
+export const ProfessionalSportGlyph = SportIcon;
+export type SportGlyphProps = SportIconProps;
+
 export default {
   DashboardIcon,
   VideoIcon,

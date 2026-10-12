@@ -6,8 +6,8 @@ import SportifyLogo from '../components/common/SportifyLogo';
 import {
   ArrowRightIcon,
   CheckIcon,
+  ProfessionalSportGlyph,
 } from '../components/common/Icons';
-import ProfessionalSportGlyph from '../components/common/ProfessionalSportGlyphs';
 import {
   getSportPersonalization,
   getSurfacesForSport,
