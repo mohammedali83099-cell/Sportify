@@ -2,31 +2,92 @@
 
 > **Train for what your game demands.**
 
-Sportify is an intelligent, full-stack athlete development platform that pairs **computer-vision movement assessment**, **role-specific biomechanical intelligence**, and **generative AI coaching** to deliver elite-level diagnostic analysis and periodized training feedback to athletes across sports and positions.
+Sportify is an intelligent, full-stack athlete development platform that bridges the gap between elite biomechanical analysis and everyday athletic training. By combining **computer-vision movement assessment**, **sport- and position-specific biomechanical intelligence**, and **generative AI coaching**, Sportify provides athletes across sports and positions with elite diagnostic analysis, actionable bottleneck discovery, and personalized periodized training.
 
 ---
 
-## 🚀 Live Deployment
+## 🚀 Live Application
 
-- **Web Application (Vercel)**: [https://sportify-3dzr.vercel.app](https://sportify-3dzr.vercel.app)
-
-## What It Does
-
-| Capability | Technical Overview |
-|------------|---------------------|
-| **Role-Aware Assessment** | Granular sport, position, and sub-role taxonomy. Calibrates evaluation criteria depending on whether the athlete is an *Opening Batsman*, *Fast Bowler*, *Football Striker*, *Point Guard*, or *Sprinter*. |
-| **Dual-Tier Computer Vision** | Primary biomechanical pose tracking via **Google MediaPipe Tasks PoseLandmarker** (33 3D anatomical landmarks, pre-baked into container image) with an automated **OpenCV motion-dynamics fallback** ensuring 100% assessment availability across all runtime environments. |
-| **Optimized Quality Gate** | Multi-phase validation gate ensuring video clarity, framing angle, and joint tracking with a 70% landmark coverage baseline, 0.35 confidence threshold, 15 FPS adaptive downsampling, 480px frame scaling, and a 60-frame kinematic analysis window (~4s movement execution). |
-| **Biomechanical Radar Profiling** | Dynamic precision SVG spider chart comparing measured kinematic performance against sport and position benchmarks across stability, mobility, symmetry, posture, explosive capacity, and balance. |
-| **Bottleneck Diagnostic Engine** | Algorithmic gap analysis weighting raw kinematic deviations against position demands to categorize performance into *Strengths*, *Proficient*, *Development Areas*, and *Critical Bottlenecks*. |
-| **AI Periodized Training & Recovery** | Powered by **Google Gemini 3.6 Flash**, synthesizing structured 4-week training regimens, corrective exercises from a curated 100+ exercise library, and targeted recovery protocols. |
-| **Longitudinal Progress Tracking** | Logs training sessions, calculates workload volume, and tracks reassessment trajectories over time to measure athletic progression. |
+- **Web Application**: [https://sportify-3dzr.vercel.app](https://sportify-3dzr.vercel.app)
 
 ---
 
-## Supported Sports & Roles
+## 💡 The Problem We Solve
 
-Sportify features granular role and sub-role configurations tailored to distinct kinematic demands:
+Traditional athletic training and modern fitness applications leave a massive gap for developing athletes:
+
+1. **The Generic Fitness Fallacy**: Most fitness apps treat all athletes as generic gym-goers, prescribing generic 3×10 routines. They ignore that a *cricket fast bowler* managing high lumbar-spine loads requires completely different mechanics, kinetic sequencing, and recovery protocols than a *football winger* or a *basketball point guard*.
+2. **The Elite Coaching Barrier**: Accurate biomechanical diagnostics and movement assessments are historically confined to elite motion-capture laboratories, high-performance institutes, and pro sports franchises equipped with multi-thousand-dollar sensor suites. Grassroots, amateur, and developing athletes have zero access to objective feedback.
+3. **The Feedback Vacuum & Injury Risk**: Athletes often train flawed movement patterns—such as knee valgus upon landing, poor rotational weight transfer, or compromised deceleration angles—without knowing it. Repeated over time, these undetected kinematic flaws limit performance ceilings and significantly heighten non-contact injury risks.
+4. **Disjointed Progression**: Even when athletes identify technical flaws, they rarely receive a structured, progressive program designed to correct them. Assessment, workout prescription, and recovery are fragmented across separate tools or forgotten entirely.
+
+---
+
+## ⚡ How Sportify Solves It
+
+Sportify turns any smartphone or web camera into an objective, activity-aware biomechanical assessment lab:
+
+- **Role-Aware Biomechanical Intelligence**: Calibrates every metric to the athlete’s specific sport, primary role, and specialized sub-role.
+- **Objective Kinematic Measurement**: Analyzes genuine angles, movement symmetry, joint stability, and phase transitions rather than estimating with arbitrary scores.
+- **Precision Gap Diagnostics**: Algorithmic gap analysis identifies exactly where an athlete excels and where critical bottlenecks hold them back.
+- **Adaptive 4-Week Periodized Coaching**: Directly translates movement assessment findings into an AI-synthesized, multi-week training cycle and doctor-grounded recovery plan.
+
+---
+
+## 🎯 Overall Basic Functionality
+
+### 1. Granular Athlete Onboarding & Role Profiling
+Athletes define their complete athletic identity:
+- **Sport & Position Taxonomy**: Select sport, discipline, primary playing role, and specialized sub-role across Cricket, Football, Basketball, and Track & Field Athletics.
+- **Physical Demands & Profile**: Capture height, weight, training frequency, access to equipment, and self-reported performance goals or injury history.
+- **Targeted Development Objectives**: Align the system toward specific outcomes (e.g., explosive power, rotational torque, deceleration stability, sprint mechanics).
+
+### 2. Intelligent Movement Studio & Video Assessment
+Athletes record or upload movement videos directly within the web app:
+- **Camera Setup & Framing Guide**: Built-in instructions on camera distance, height, lighting, and plane of motion (sagittal vs. frontal).
+- **Activity-Specific Kinematic Protocols**: Rather than applying one generic algorithm to every video, Sportify matches the video to a dedicated assessment protocol:
+  - 🏏 **Cricket Batting Drive Mechanics**: Analyzes stance alignment, lead elbow elevation, head over lead knee tracking, front knee flexion angle, and rotational weight transfer.
+  - ⚽ **Football Strike & Kicking Mechanics**: Measures plant-foot stability, kicking knee extension velocity, striking hip whip angle, and torso lean balance through ball impact.
+  - 🏀 **Basketball Jump Shot & Release**: Tracks triple extension alignment (ankle, knee, hip), elbow alignment under the ball, vertical release apex, and landing shock absorption.
+  - 🏃 **Sprint Acceleration Mechanics**: Measures forward torso acceleration lean, high knee drive elevation, hip extension angle, and bilateral stride symmetry.
+  - ⚡ **Vertical Jump / CMJ**: Evaluates countermovement eccentric load depth, rate of explosive extension, takeoff posture, and eccentric landing absorption.
+  - 🏋️ **Squat Biomechanics**: Analyzes deep hip flexion, femur-to-parallel depth, knee valgus/varus control, torso inclination, and bilateral knee symmetry.
+- **Automated Quality Gate**: Validates joint visibility, frame rate, and tracking confidence to prevent false assessments or misleading feedback.
+
+### 3. Biomechanical Radar Profiling
+Kinematic performance is visualized through an interactive, multi-axis SVG radar profile comparing the athlete against sport- and position-specific benchmarks across 6 key pillars:
+- **Stability**: Joint control and base maintenance under dynamic load.
+- **Mobility**: Functional range of motion across active joints.
+- **Symmetry**: Bilateral kinematic balance between left and right kinetic chains.
+- **Posture**: Spinal alignment, head positioning, and torso integrity.
+- **Explosive Capacity**: Rate of force development, extension speed, and acceleration.
+- **Balance**: Center-of-mass control through movement execution and landing.
+
+### 4. Bottleneck Diagnostic Engine
+An algorithmic diagnostic engine evaluates kinematic findings and categorizes them into clear performance tiers:
+- 🟢 **Strengths**: Solid mechanics that meet or exceed position benchmarks.
+- 🔵 **Proficient**: Consistent baseline mechanics with minor optimization opportunities.
+- 🟡 **Development Areas**: Noticeable deviations that limit efficiency or power output.
+- 🔴 **Critical Bottlenecks**: Severe kinematic faults or compensations that heighten injury risk and demand immediate intervention.
+
+### 5. Periodized AI Training & Corrective Prescriptions
+Movement assessment findings feed directly into an intelligent training synthesizer:
+- **4-Week Structured Plan**: Progressive periodization spanning *Foundation*, *Progression*, *Peak*, and *Deload* phases.
+- **Role-Specific Corrective Drills**: Curated exercise prescriptions directly targeting identified bottlenecks (e.g., hip mobility for batting drives, eccentric hamstring strength for sprint deceleration).
+- **Detailed Sets, Reps & Cues**: Precise prescription with RPE guidelines, rest intervals, and biomechanical form cues.
+
+### 6. Doctor-Grounded Recovery Pathway
+Comprehensive recovery recommendations addressing athlete fatigue and movement strain:
+- **Targeted Mobility & Tissue Care**: Active recovery protocols focused on loaded joints.
+- **Readiness & Regeneration**: Sleep guidelines, hydration targets, and nervous system recovery techniques.
+
+### 7. Longitudinal Progress Tracking
+- **Workout Logging**: Track completed sessions, recorded RPE, and accumulated training volume.
+- **Reassessment Delta**: Compare repeat movement assessments over time to quantify kinematic improvements and measure athletic development.
+
+---
+
+## 🏅 Supported Sports & Roles
 
 | Sport | Primary Roles | Specialized Sub-Roles |
 |-------|---------------|-----------------------|
@@ -34,174 +95,3 @@ Sportify features granular role and sub-role configurations tailored to distinct
 | ⚽ **Football** | Forward, Midfielder, Defender, Goalkeeper | Striker, Winger, Central Midfielder, Attacking Midfielder, Centre-Back, Full-Back, Goalkeeper |
 | 🏀 **Basketball** | Guard, Forward, Center | Point Guard, Shooting Guard, Small Forward, Power Forward, Center |
 | 🏃 **Athletics** | Track, Field | Sprinter (100m / 200m), Middle Distance, Jumper (Long / High / Triple), Thrower |
-
----
-
-## Specialized Movement Protocols
-
-Sportify applies activity-specific kinematic analyzers rather than generic exercise templates:
-
-1. 🏏 **Cricket Batting Drive Mechanics** (`cricket_batting`): Analyzes stance alignment, lead elbow elevation, head over lead knee horizontal tracking, front knee flexion angle, and rotational weight transfer.
-2. ⚽ **Football Strike & Kicking Mechanics** (`football_strike`): Measures plant-foot stability, kicking knee extension velocity, striking hip whip angle, and torso lean balance through ball impact.
-3. 🏀 **Basketball Jump Shot & Release** (`basketball_jump_shot`): Tracks triple extension alignment (ankle, knee, hip), elbow alignment under the ball, vertical release apex, and landing shock absorption.
-4. 🏃 **Sprint Acceleration Mechanics** (`sprint_mechanics`): Measures forward torso acceleration lean, high knee drive elevation, hip extension angle, and bilateral stride symmetry.
-5. ⚡ **Vertical Jump / CMJ** (`vertical_jump`): Evaluates countermovement eccentric load depth, rate of explosive extension, takeoff posture, and eccentric landing absorption.
-6. 🏋️ **Squat Biomechanics** (`squat`): Analyzes deep hip flexion, femur-to-parallel depth, knee valgus/varus control, torso inclination, and bilateral knee symmetry.
-
----
-
-## System Architecture
-
-```
-+------------------------------------------------------------------------+
-|                 React 18 + TypeScript + Vite Frontend                  |
-|   Glassmorphic Dark UI • Zustand State • Interactive SVG Radar Chart   |
-|   Landing -> Onboarding (OTP) -> Studio -> Analysis -> Dashboard -> Plan|
-+------------------------------------------------------------------------+
-                                     |  REST API (Axios + JWT Auth)
-                                     v
-+------------------------------------------------------------------------+
-|                        FastAPI Backend (Python 3.11+)                  |
-|    Auth (/auth/*) • Intake (/intake/*) • Video Engine (/video/*)       |
-|    Assessment (/assessment/*) • Plan (/plan/*) • Progress (/progress/*)|
-+------------------------------------------------------------------------+
-         |                                |                            |
-         v                                v                            v
-+------------------------+  +---------------------------+  +----------------------------+
-|     Database Layer     |  |   Messaging & Ephemeral   |  |     AI & Vision Engine     |
-| * SQLite (aiosqlite)   |  | * Resend HTTPS REST API   |  | * Google MediaPipe Tasks   |
-| * PostgreSQL (asyncpg) |  |   (Branded HTML emails)   |  | * Kinematic Vector Math    |
-| * SQLAlchemy 2.0 Async |  | * Redis / In-Memory Store |  | * Bottleneck Scoring Engine|
-| * Alembic migrations   |  |   (OTP TTL & rate limit)  |  | * Google Gemini 3.6 Flash  |
-+------------------------+  +---------------------------+  +----------------------------+
-```
-
----
-
-## Athlete Journey
-
-```
-[ 1. Landing ]  -->  [ 2. Onboarding & Auth ]  -->  [ 3. Athlete Dashboard ]
-   Hero & Value       Sport, Role, Biometrics,       Baseline metrics,
-   Proposition        Credentials & Email OTP        development pathway
-                                                              |
-                                                              v
-[ 6. Progress ] <--  [ 5. Training Plan ]     <--  [ 4. Movement Studio ]
-   Reassessment        4-Week periodized              Upload / record video,
-   trend tracking      Gemini AI routine              MediaPipe CV & radar chart
-```
-
----
-
-## Project Structure
-
-```
-Sportify/
-+-- backend/
-|   +-- main.py                    # FastAPI entrypoint, middleware, and routers
-|   +-- config.py                  # Pydantic environment configuration (Resend, Redis, Gemini)
-|   +-- database.py                # Dual-mode async DB engine (SQLite & PostgreSQL)
-|   +-- models/                    # Declarative ORM models (Athlete with is_verified, etc.)
-|   +-- schemas/                   # Pydantic v2 validation schemas (Auth, OTP, Assessment)
-|   +-- routers/                   # API routes (auth, intake, video, plan, progress)
-|   +-- services/
-|   |   +-- email_service.py       # Asynchronous Resend email dispatcher with dark-mode HTML
-|   |   +-- otp_service.py         # Redis / in-memory OTP engine with cooldown & brute-force limits
-|   |   +-- pose_analyzer.py       # Activity-aware video assessment coordinator
-|   |   +-- pose_detector.py       # MediaPipe Tasks PoseLandmarker adapter
-|   |   +-- gemini_service.py      # Google Gemini 3.6 Flash integration with fallbacks
-|   |   +-- bottleneck_engine.py   # 4-tier gap analysis diagnostic engine
-|   |   +-- plan_generator.py      # Periodized training and recovery synthesizer
-|   |   +-- exercise_service.py    # Curated exercise catalog and prescription service
-|   |   +-- taxonomy_service.py    # Unified sport and role taxonomy service
-|   |   +-- movement/              # Modular biomechanics protocol suite
-|   |       +-- base.py            # Abstract MovementProtocol & QualityReport
-|   |       +-- quality_gate.py    # VideoQualityGate validation & FPS sampler
-|   |       +-- registry.py        # Dynamic protocol registry
-|   |       +-- cricket_batting_analyzer.py
-|   |       +-- football_strike_analyzer.py
-|   |       +-- basketball_shot_analyzer.py
-|   |       +-- sprint_mechanics_analyzer.py
-|   |       +-- jump_analyzer.py
-|   |       +-- squat_analyzer.py
-|   +-- data/                      # Sport taxonomy and 100+ exercise library
-|   +-- tests/                     # 27 automated unit tests (OTP security, CV, Gemini fallbacks)
-|   +-- requirements.txt
-|   +-- .env.example
-|
-+-- frontend/
-|   +-- src/
-|   |   +-- types/                 # Centralized type contracts (athlete, assessment, plan, api)
-|   |   +-- pages/                 # Strongly typed pages (Landing, Onboarding, SportAssessmentPage,
-|   |   |                          # Analysis, Dashboard, TrainingPlan, RecoveryPlan, Progress, VideoCapture)
-|   |   +-- components/
-|   |   |   +-- auth/              # Glassmorphic OTPInput with countdown & clipboard paste
-|   |   |   +-- assessment/        # CameraSetupGuide, AssessmentUploader, PrimaryProtocolCard, etc.
-|   |   |   +-- common/            # BiomechanicalRadarChart, BenchmarkBar, AppErrorBoundary, Icons, etc.
-|   |   |   +-- layout/            # MobileTopBar, MobileBottomNav
-|   |   +-- store/                 # Zustand store (athleteStore.ts with typed auth & profile state)
-|   |   +-- config/                # Sport taxonomy, assessment matrix, guides, benchmarks
-|   |   +-- api/                   # Centralized Axios client (client.ts) with JWT interceptor & typed methods
-|   |   +-- App.tsx                # Root routing and hydration gate
-|   |   +-- main.tsx               # Application entrypoint
-|   |   +-- vite-env.d.ts          # Vite client ambient types
-|   +-- tsconfig.json              # TypeScript configuration (strict, paths, allowJs)
-|   +-- tsconfig.node.json         # TypeScript configuration for Vite/Node environment
-|   +-- package.json               # Dependencies & scripts ("type-check": "tsc --noEmit")
-|   +-- tailwind.config.js
-|   +-- vite.config.js
-|
-+-- README.md
-```
-
----
-
-## Tech Stack
-
-| Domain | Technologies |
-|--------|--------------|
-| **Frontend Core** | React 18.3, TypeScript (Strict), Vite 5.3, React Router DOM v6, Axios |
-| **Frontend Styling** | Vanilla CSS tokens + Tailwind CSS v3.4 (Custom glassmorphic dark theme) |
-| **State Management** | Zustand 4.5 (Typed store with persist middleware for JWT auth & profile hydration) |
-| **Type Contracts** | Centralized domain interfaces (`Athlete`, `Assessment`, `TrainingPlan`, `API`) |
-| **Visualizations** | Custom Dynamic SVG Biomechanical Radar Chart (trigonometric polygon calculations) |
-| **UI & Auth Components** | Lucide React, Glassmorphic 6-digit OTP Input (auto-focus, paste, countdown) |
-| **Backend API** | FastAPI, Uvicorn, Pydantic v2, Python 3.11+ |
-| **Database & ORM** | SQLAlchemy 2.0 (AsyncIO), aiosqlite (async SQLite) / asyncpg (PostgreSQL), Alembic |
-| **Transactional Email** | Resend REST API (asynchronous httpx client with dark-mode HTML templates & dev console fallback) |
-| **Ephemeral Cache & Security** | Redis (`redis.asyncio`) with automated in-memory TTL dictionary fallback |
-| **Computer Vision** | Google MediaPipe Tasks (`pose_landmarker_full`), OpenCV, NumPy |
-| **Generative AI** | Google Gemini 3.6 Flash (Native Google GenAI SDK with structured JSON outputs and deterministic fallbacks) |
-| **Authentication & Security** | OAuth2 Password Bearer flow, JWT tokens (python-jose), bcrypt password hashing, 6-digit OTP verification (60s cooldown, 10m TTL, 5-attempt lockout) |
-| **Testing Suite** | Python `unittest` suite (27 unit tests) + TypeScript Compiler (`tsc --noEmit`) |
-
----
-
-## API Endpoints Summary
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/auth/send-otp` | Dispatch 6-digit verification code with rate limiting & cooldown |
-| `POST` | `/auth/verify-otp` | Verify OTP and issue JWT access token for registration or login |
-| `POST` | `/auth/register` | Direct registration with email, password, and full name |
-| `POST` | `/auth/login` | Authenticate athlete and return JWT bearer token |
-| `POST` | `/auth/reset-password-pin` | Reset forgotten password using athlete's secure 6-digit PIN |
-| `GET` | `/auth/me` | Fetch authenticated athlete profile |
-| `GET` | `/intake/sports` | List sports taxonomy, roles, and disciplines |
-| `POST` | `/intake/profile` | Submit athlete role and baseline physical parameters |
-| `GET` | `/intake/profile` | Retrieve active athlete profile |
-| `POST` | `/video/coach` | Submit activity video for asynchronous CV analysis |
-| `GET` | `/video/coach/{id}` | Poll CV processing, kinematic scores, and AI feedback |
-| `GET` | `/video/protocols` | List registered movement protocols |
-| `GET` | `/assessment/latest` | Retrieve latest verified movement assessment |
-| `POST` | `/assessment/manual` | Submit manual kinematic assessment values |
-| `GET` | `/plan/current` | Retrieve active periodized training plan |
-| `POST` | `/plan/generate` | Trigger Gemini 3.6 Flash training plan synthesis |
-| `GET` | `/plan/recovery` | Retrieve active recovery recommendations |
-| `GET` | `/plan/history` | Retrieve historical training plans |
-| `POST` | `/progress/log` | Log completed training workout session |
-| `GET` | `/progress/dashboard` | Aggregated development metrics, stats, and recovery |
-| `GET` | `/progress/logs` | Retrieve chronological training session logs |
-| `GET` | `/progress/reassessment`| Calculate trajectory and reassessment delta |
-| `GET` | `/health` | Server health check endpoint |
-
