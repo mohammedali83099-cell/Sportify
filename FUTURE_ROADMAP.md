@@ -38,3 +38,17 @@ This document outlines the planned future technical developments, machine learni
 ## 6. Academy, Coach & Scout Collaboration Portal
 - **Squad Biomechanics Dashboard**: Enabling coaches, physiotherapists, and academy directors to monitor squad-wide movement health, benchmark athletes against team standards, and identify injury risks before they cause time-loss.
 - **Longitudinal Scout Reports**: Exportable biomechanical and progression dossiers to assist in talent identification and developmental pathway tracking.
+
+---
+
+## 7. Visual Video Playback & On-Screen Flaw Highlighting (Full Transparency)
+- **Watch Your Movement in Action**: Instead of just receiving numbers and text, athletes can re-watch their recorded video directly inside Sportify.
+- **Frame-by-Frame Visual Pointers**: As the video plays, Sportify highlights exactly what happens on your body in real time. If a movement flaw occurs—like knees caving inward during a squat landing or head falling off-balance during a cricket shot—the app points directly to that joint on the screen with clear color-coded markers so you can see your mistake immediately.
+- **Smooth Transition to Results**: Once the video finishes playing, the app smoothly transitions into your full movement score, detailed breakdown, and personalized 4-week training plan.
+
+---
+
+## 8. Progress Tracking Over Time (Before vs. After Comparison)
+- **Tracking Every Milestone**: Sportify remembers your past tests by date, giving you an ongoing timeline of your initial strengths and problem areas.
+- **Smart Before-and-After Comparison**: After following your training plan for a few weeks, uploading a new video allows Sportify to directly compare your old form against your new form side-by-side.
+- **Clear Improvements & Next Focus Areas**: The app explains in simple terms what has improved (e.g., *"Your knee stability has improved noticably and isn't as big of a problem"*), points out any remaining areas that still need work, and updates your training routine accordingly.
