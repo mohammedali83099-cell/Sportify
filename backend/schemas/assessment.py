@@ -14,6 +14,7 @@ class MovementAssessmentResponse(BaseModel):
     movement_feedback: Optional[List[str]] = None
     quality_report: Optional[Dict[str, Any]] = None
     error_details: Optional[Dict[str, Any]] = None
+    coaching: Optional[Dict[str, Any]] = None
     created_at: Optional[datetime] = None
 
     class Config:

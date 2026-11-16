@@ -24,7 +24,7 @@ async def create_or_update_profile(
     )
     profile = result.scalars().first()
 
-    data_dict = profile_data.model_dump()
+    data_dict = profile_data.model_dump(exclude_unset=True)
     # Normalize role fields
     if not data_dict.get("primary_role") and data_dict.get("role"):
         data_dict["primary_role"] = data_dict["role"]
@@ -41,7 +41,9 @@ async def create_or_update_profile(
         for key, value in data_dict.items():
             setattr(profile, key, value)
     else:
-        profile = AthleteProfile(**data_dict, athlete_id=current_athlete.id)
+        full_dict = profile_data.model_dump()
+        full_dict.update(data_dict)
+        profile = AthleteProfile(**full_dict, athlete_id=current_athlete.id)
         db.add(profile)
 
     await db.commit()

@@ -18,6 +18,7 @@ class MovementAssessment(Base):
     movement_feedback = Column(JSON, nullable=True)
     quality_report = Column(JSON, nullable=True)
     error_details = Column(JSON, nullable=True)
+    coaching = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

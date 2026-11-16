@@ -105,6 +105,7 @@ async def _run_coaching_job(
                         metric_details=metric_details,
                         movement_feedback=analysis_result.get("movement_feedback"),
                         quality_report=analysis_result.get("quality_report"),
+                        coaching=coaching,
                     )
                     db.add(assessment)
                     await db.flush()

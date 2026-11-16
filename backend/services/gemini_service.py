@@ -65,7 +65,7 @@ class GeminiService:
                     "parts": [{"text": system_instruction}]
                 }
 
-            timeout_config = httpx.Timeout(2.5, connect=1.5)
+            timeout_config = httpx.Timeout(12.0, connect=3.0)
             with httpx.Client(timeout=timeout_config) as http_client:
                 resp = http_client.post(url, json=payload)
                 if resp.status_code == 200:

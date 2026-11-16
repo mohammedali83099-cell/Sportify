@@ -64,6 +64,7 @@ async def create_all_tables():
                 ("metric_details", "JSON"),
                 ("quality_report", "JSON"),
                 ("error_details", "JSON"),
+                ("coaching", "JSON"),
             ],
             "bottleneck_reports": [
                 ("strengths", "JSON"),
