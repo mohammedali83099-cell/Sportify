@@ -86,6 +86,16 @@ export const App: React.FC = () => {
               }
             />
             <Route
+              path="/analysis"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Analysis />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/analysis/:id"
               element={
                 <ProtectedRoute>

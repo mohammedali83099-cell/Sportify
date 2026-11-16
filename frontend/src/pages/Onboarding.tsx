@@ -453,7 +453,9 @@ export const Onboarding: React.FC = () => {
         ...(profileData.role_goals || []),
       ],
       experience_level: profileData.experience_level,
-      training_frequency: Number(profileData.training_days_per_week),
+      training_days_per_week: Number(profileData.training_days_per_week) || 4,
+      training_frequency: Number(profileData.training_days_per_week) || 4,
+      age: Number(profileData.age) || 20,
       weight_kg: Number(profileData.weight_kg),
       height_cm: Number(profileData.height_cm),
     };

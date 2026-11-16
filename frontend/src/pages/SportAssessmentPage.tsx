@@ -32,7 +32,9 @@ export const SportAssessmentPage: React.FC = () => {
       if (!currentAssessment) {
         try {
           const res = await assessmentAPI.getLatest();
-          if (res) {
+          if (res?.assessment) {
+            setAssessment(res.assessment);
+          } else if (res && !res.assessment) {
             setAssessment(res);
           }
         } catch {
