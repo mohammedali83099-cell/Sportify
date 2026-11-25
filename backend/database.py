@@ -4,14 +4,23 @@ from sqlalchemy import text
 from config import settings
 
 connect_args = {}
+engine_kwargs = {"pool_pre_ping": True, "echo": False}
+
 if settings.normalized_database_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+else:
+    # Optimized pool parameters for PostgreSQL with Neon connection pooler
+    engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_recycle": 300,
+        "pool_timeout": 30,
+    })
 
 engine = create_async_engine(
     settings.normalized_database_url,
-    echo=False,
     connect_args=connect_args,
-    pool_pre_ping=True,
+    **engine_kwargs,
 )
 
 AsyncSessionLocal = sessionmaker(

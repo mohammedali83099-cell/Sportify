@@ -41,6 +41,12 @@ class Settings(BaseSettings):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
         if "sslmode=" in url:
             url = url.replace("sslmode=", "ssl=")
+        # asyncpg does not accept channel_binding; strip it cleanly if present
+        import re
+        url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
+        # Fix any dangling ?& or double && from regex removal
+        if "?" not in url and "&" in url:
+            url = url.replace("&", "?", 1)
         return url
 
     class Config:
